@@ -1,11 +1,5 @@
-flask
-flask_sqlalchemy
-flask_login
-python-dotenv
-huggingface_hub
-reportlab
-requests
-beautifulsoup4
-pypdf
-youtube-transcript-api
+Flask
+Flask-Mail
+itsdangerous
 openai
+gunicorn
