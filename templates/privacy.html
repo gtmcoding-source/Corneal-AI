@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Dashboard - AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <nav class="topbar">
+        <h1 class="brand">Privacy Dashboard</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="link-pill" href="{{ url_for('home') }}">Generate</a>
+            <a class="link-pill" href="{{ url_for('security') }}">Security</a>
+            <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+    <main class="container">
+        <section class="panel landing-card">
+            <h2>Data Use Overview</h2>
+            <ul class="landing-list">
+                <li><strong>Account data stored:</strong> Username, optional email/mobile, password hash.</li>
+                <li><strong>Content stored:</strong> Your input and generated notes for account history.</li>
+                <li><strong>Processing:</strong> Sources are sent to the configured AI provider for note generation.</li>
+                <li><strong>Recommendation:</strong> Avoid uploading passwords, API keys, or confidential legal/medical records.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>AI Notes Maker</p>
+            <p>Privacy</p>
+            <p>Security</p>
+            <p>Dashboard</p>
+            <p>Contact</p>
+        </div>
+    </footer>
+</body>
+</html>

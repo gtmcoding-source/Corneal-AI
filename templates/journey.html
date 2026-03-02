@@ -27,17 +27,17 @@
         </section>
 
         <section class="panel journey-grid">
-            <a class="journey-card" href="{{ url_for('home', mode='pdf') }}">
+            <a class="journey-card" href="{{ url_for('generator_page', mode='pdf') }}">
                 <p class="journey-step">Step 1</p>
                 <h3>Summarize PDF</h3>
                 <p>Upload PDFs and generate structured Cornell notes.</p>
             </a>
-            <a class="journey-card" href="{{ url_for('home', mode='website') }}">
+            <a class="journey-card" href="{{ url_for('generator_page', mode='webpage') }}">
                 <p class="journey-step">Step 1</p>
                 <h3>Summarize Website</h3>
                 <p>Paste article URLs and extract key ideas quickly.</p>
             </a>
-            <a class="journey-card" href="{{ url_for('home', mode='youtube') }}">
+            <a class="journey-card" href="{{ url_for('generator_page', mode='youtube') }}">
                 <p class="journey-step">Step 1</p>
                 <h3>Summarize YouTube Video</h3>
                 <p>Use video links to generate transcript-based notes.</p>

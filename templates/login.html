@@ -18,8 +18,7 @@
             {% endif %}
 
             <div class="oauth-row">
-                <a class="oauth-btn" href="{{ url_for('oauth_login', provider='github') }}">Continue with GitHub</a>
-                <a class="oauth-btn" href="{{ url_for('oauth_login', provider='google') }}">Continue with Google</a>
+                <a class="oauth-btn" href="{{ url_for('auth0_login') }}">Continue with Auth0</a>
             </div>
 
             <form class="auth-form" action="{{ url_for('login') }}" method="POST">

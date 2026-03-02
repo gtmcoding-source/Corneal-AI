@@ -457,6 +457,36 @@ p {
     max-width: 850px;
 }
 
+.mode-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
+}
+
+.mode-pill {
+    text-decoration: none;
+    padding: 0.48rem 0.82rem;
+    border-radius: 999px;
+    border: 1px solid rgba(16, 33, 39, 0.14);
+    background: rgba(255, 255, 255, 0.78);
+    color: var(--ink);
+    font-size: 0.84rem;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.mode-pill:hover {
+    transform: translateY(-1px);
+}
+
+.mode-pill-active {
+    background: rgba(219, 234, 254, 0.78);
+    border-color: rgba(11, 87, 208, 0.4);
+    color: var(--primary-2);
+    box-shadow: 0 8px 18px rgba(11, 87, 208, 0.16);
+}
+
 .subtitle {
     color: var(--muted);
     font-size: 1rem;
@@ -710,6 +740,24 @@ button:hover {
     }
 }
 
+.dashboard-grid {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.dashboard-card {
+    border: 1px solid rgba(16, 33, 39, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.75);
+    padding: 1rem;
+}
+
+.dashboard-card .subtitle {
+    margin-bottom: 0.75rem;
+}
+
 @media (max-width: 760px) {
     .topbar {
         margin-top: 12px;
@@ -738,6 +786,7 @@ button:hover {
     }
 
     .landing-sections,
+    .dashboard-grid,
     .plans-grid,
     .steps-grid,
     .metrics-strip,

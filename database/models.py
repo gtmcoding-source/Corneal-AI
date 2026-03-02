@@ -8,6 +8,7 @@ class User(db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
     mobile = db.Column(db.String(20), unique=True, nullable=True)
+    auth0_sub = db.Column(db.String(255), unique=True, nullable=True)
     password = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     # Relationship to notes

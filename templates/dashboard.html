@@ -14,6 +14,8 @@
         <div class="top-actions">
             <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
             <a class="link-pill" href="{{ url_for('home') }}">Generate</a>
+            <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
+            <a class="link-pill" href="{{ url_for('security') }}">Security</a>
             <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
             <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
         </div>
@@ -40,6 +42,19 @@
                     <p class="metric-label">Connection mapping</p>
                 </div>
             </div>
+        </section>
+
+        <section class="panel landing-card dashboard-grid">
+            <article class="dashboard-card">
+                <h3>Privacy Dashboard</h3>
+                <p class="subtitle">Review what gets stored, what gets processed, and how to keep sensitive data safe.</p>
+                <a class="link-pill" href="{{ url_for('privacy') }}">Open Privacy</a>
+            </article>
+            <article class="dashboard-card">
+                <h3>Security Section</h3>
+                <p class="subtitle">Check authentication protection, account safety tips, and secure workflow guidance.</p>
+                <a class="link-pill" href="{{ url_for('security') }}">Open Security</a>
+            </article>
         </section>
     </main>
 

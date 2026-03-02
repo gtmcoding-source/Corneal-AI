@@ -1,4 +1,5 @@
 Flask
+Authlib
 Flask-Mail
 itsdangerous
 openai

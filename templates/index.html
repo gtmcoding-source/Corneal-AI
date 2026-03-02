@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Notes Maker</title>
+    <title>Corneal AI - Generate Study Notes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="app-shell">
     <div class="bg-orb orb-a"></div>
     <div class="bg-orb orb-b"></div>
     <nav class="topbar">
-        <h1 class="brand">AI Cornell Notes</h1>
+        <h1 class="brand">Corneal AI </h1>
         <div class="top-actions">
             <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
             <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
+            <a class="link-pill" href="{{ url_for('security') }}">Security</a>
             <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
             <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
         </div>
@@ -23,8 +25,16 @@
             <div class="ad-slot">Sponsored Placement</div>
         </aside>
         <section class="panel panel-editor">
-            <h2>Turn Raw Content Into High-Quality Cornell Notes</h2>
-            <p class="subtitle">Upload PDFs, websites, YouTube videos, audio files, Google Docs, Google Slides, and more. AI will summarize them and build interesting topic connections.</p>
+            <div class="mode-switcher">
+                <a class="mode-pill {% if active_mode == 'text' %}mode-pill-active{% endif %}" href="{{ url_for('home') }}">Summarize Text</a>
+                <a class="mode-pill {% if active_mode == 'pdf' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='pdf') }}">Summarize PDF</a>
+                <a class="mode-pill {% if active_mode == 'youtube' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='youtube') }}">Summarize YouTube Video</a>
+                <a class="mode-pill {% if active_mode == 'webpage' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='webpage') }}">Summarize Webpage</a>
+                <a class="mode-pill {% if active_mode == 'multi' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='multi') }}">Mixed Sources</a>
+            </div>
+
+            <h2>{{ mode_title }}</h2>
+            <p class="subtitle">{{ mode_subtitle }}</p>
         {% if mode_tip %}
             <p class="mode-tip">{{ mode_tip }}</p>
         {% endif %}
@@ -32,15 +42,23 @@
             <p class="error-message">{{ error }}</p>
         {% endif %}
             <form class="note-form" action="{{ url_for('generate') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="mode" value="{{ active_mode }}">
+
+            {% if active_mode in ['youtube', 'webpage', 'multi'] %}
                 <label for="source_urls">Source URLs (one per line)</label>
-                <textarea id="source_urls" name="source_urls" rows="4" placeholder="https://example.com/article&#10;https://www.youtube.com/watch?v=...&#10;https://docs.google.com/document/d/..."></textarea>
+                <textarea id="source_urls" name="source_urls" rows="4" placeholder="{% if active_mode == 'youtube' %}https://www.youtube.com/watch?v=...{% elif active_mode == 'webpage' %}https://example.com/article{% else %}https://example.com/article&#10;https://www.youtube.com/watch?v=...&#10;https://docs.google.com/document/d/...{% endif %}"></textarea>
+            {% endif %}
 
-                <label for="source_files">Upload files (PDF, MP3, WAV, M4A, TXT, MD, CSV)</label>
-                <input id="source_files" type="file" name="source_files" multiple>
+            {% if active_mode in ['pdf', 'multi'] %}
+                <label for="source_files">{% if active_mode == 'pdf' %}Upload PDF files{% else %}Upload files (PDF, MP3, WAV, M4A, TXT, MD, CSV){% endif %}</label>
+                <input id="source_files" type="file" name="source_files" {% if active_mode == 'pdf' %}accept=".pdf"{% endif %} multiple>
+            {% endif %}
 
+            {% if active_mode in ['text', 'multi'] %}
                 <label for="content">Additional text input</label>
                 <textarea id="content" name="content" rows="15" placeholder="Paste lecture notes or text here..."></textarea>
-                <button type="submit">Generate Cornell Notes</button>
+            {% endif %}
+                <button type="submit">Generate Notes</button>
             </form>
         </section>
         <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
@@ -58,7 +76,7 @@
             <p>Dashboard</p>
             <p>Profile</p>
             <p>Privacy</p>
-            <p>Contact</p>
+            <p>Security</p>
         </div>
     </footer>
 </body>
