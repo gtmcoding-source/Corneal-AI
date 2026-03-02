@@ -3,3 +3,9 @@ Flask-Mail
 itsdangerous
 openai
 gunicorn
+sqlalchemy
+dotenv
+bs4
+pypdf
+reportlab
+requests
