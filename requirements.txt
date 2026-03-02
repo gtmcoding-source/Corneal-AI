@@ -9,3 +9,6 @@ bs4
 pypdf
 reportlab
 requests
+flask_sqlalchemy
+flask_migrate
+datetime
