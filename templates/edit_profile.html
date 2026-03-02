@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card p-4">
+<h3>Edit Profile</h3>
+
+<form method="POST" enctype="multipart/form-data">
+
+    <label>Email</label>
+    <input type="email" name="email" value="{{ user.email }}" class="form-control mb-3">
+
+    <label>Profile Picture</label>
+    <input type="file" name="profile_pic" class="form-control mb-3">
+
+    <button class="btn btn-success">Update</button>
+</form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <nav class="topbar">
+        <h1 class="brand">Dashboard</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
+            <a class="link-pill" href="{{ url_for('home') }}">Generate</a>
+            <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
+            <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+    <main class="container">
+        <section class="panel landing-card">
+            <h2>Your Workspace Snapshot</h2>
+            <p class="subtitle">Use this dashboard as your central command page.</p>
+            <div class="metrics-strip">
+                <div class="metric-item">
+                    <p class="metric-value">{{ note_count }}</p>
+                    <p class="metric-label">Notes generated</p>
+                </div>
+                <div class="metric-item">
+                    <p class="metric-value">PDF</p>
+                    <p class="metric-label">Download support</p>
+                </div>
+                <div class="metric-item">
+                    <p class="metric-value">Multi</p>
+                    <p class="metric-label">Source summarization</p>
+                </div>
+                <div class="metric-item">
+                    <p class="metric-value">AI</p>
+                    <p class="metric-label">Connection mapping</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>AI Notes Maker</p>
+            <p>Dashboard</p>
+            <p>Journey</p>
+            <p>Security</p>
+            <p>Contact</p>
+        </div>
+    </footer>
+</body>
+</html>

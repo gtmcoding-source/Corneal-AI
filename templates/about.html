@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <header class="landing-topbar">
+        <h1 class="brand">About AI Notes Maker</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('landing') }}">Home</a>
+            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
+            <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
+        </div>
+    </header>
+    <main class="landing-main">
+        <section class="panel landing-card">
+            <h2>What this platform does</h2>
+            <p>AI Notes Maker converts PDFs, websites, YouTube videos, audio, and mixed text sources into structured Cornell notes.</p>
+            <p>It is designed to summarize clearly, connect topics across sources, and help faster revision workflows.</p>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>AI Notes Maker</p>
+            <p>About</p>
+            <p>Security</p>
+            <p>Terms</p>
+            <p>Contact</p>
+        </div>
+    </footer>
+</body>
+</html>

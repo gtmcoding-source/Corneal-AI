@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Journey - AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <header class="landing-topbar">
+        <h1 class="brand">AI Notes Maker</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('landing') }}">Home</a>
+            <a class="link-pill" href="{{ url_for('about') }}">About</a>
+            <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
+        </div>
+    </header>
+
+    <main class="landing-main">
+        <section class="panel landing-hero">
+            <p class="eyebrow">User Journey Map</p>
+            <h2>Choose how you want to use AI Notes Maker</h2>
+            <p class="subtitle">Start from your content type, move to generation, then manage your notes from dashboard and profile.</p>
+        </section>
+
+        <section class="panel journey-grid">
+            <a class="journey-card" href="{{ url_for('home', mode='pdf') }}">
+                <p class="journey-step">Step 1</p>
+                <h3>Summarize PDF</h3>
+                <p>Upload PDFs and generate structured Cornell notes.</p>
+            </a>
+            <a class="journey-card" href="{{ url_for('home', mode='website') }}">
+                <p class="journey-step">Step 1</p>
+                <h3>Summarize Website</h3>
+                <p>Paste article URLs and extract key ideas quickly.</p>
+            </a>
+            <a class="journey-card" href="{{ url_for('home', mode='youtube') }}">
+                <p class="journey-step">Step 1</p>
+                <h3>Summarize YouTube Video</h3>
+                <p>Use video links to generate transcript-based notes.</p>
+            </a>
+            <a class="journey-card" href="{{ url_for('dashboard') }}">
+                <p class="journey-step">Step 2</p>
+                <h3>Dashboard</h3>
+                <p>Track activity, jump to generation, and review output flow.</p>
+            </a>
+            <a class="journey-card" href="{{ url_for('profile') }}">
+                <p class="journey-step">Step 3</p>
+                <h3>Profile</h3>
+                <p>View account identity used for login and personalization.</p>
+            </a>
+            <a class="journey-card" href="{{ url_for('about') }}">
+                <p class="journey-step">Info</p>
+                <h3>About</h3>
+                <p>Understand the product vision and supported workflows.</p>
+            </a>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>AI Notes Maker</p>
+            <p>Journey</p>
+            <p>Use Cases</p>
+            <p>Support</p>
+            <p>Contact</p>
+        </div>
+    </footer>
+</body>
+</html>

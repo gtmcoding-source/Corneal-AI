@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <nav class="topbar">
+        <h1 class="brand">Your Notes</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
+            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="link-pill" href="{{ url_for('home') }}">New Note</a>
+            <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=note_id) }}">Download PDF</a>
+        </div>
+    </nav>
+    <main class="container page-grid result-page">
+        <aside class="ad-rail ad-left" aria-label="Left advertisement slot">
+            <div class="ad-slot">Sponsored Placement</div>
+        </aside>
+        <section class="panel notes-display">
+            {{ notes | safe }}
+        </section>
+        <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
+            <div class="ad-slot">Sponsored Placement</div>
+        </aside>
+    </main>
+
+    <section class="container bottom-ad-wrap" aria-label="Bottom advertisement slot">
+        <div class="bottom-ad-slot">Sponsored Placement</div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>AI Notes Maker</p>
+            <p>Results</p>
+            <p>Download</p>
+            <p>Support</p>
+            <p>Contact</p>
+        </div>
+    </footer>
+</body>
+</html>
+
+

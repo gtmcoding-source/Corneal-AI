@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <nav class="topbar">
+        <h1 class="brand">AI Cornell Notes</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
+            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
+            <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+    <main class="container page-grid editor-page">
+        <aside class="ad-rail ad-left" aria-label="Left advertisement slot">
+            <div class="ad-slot">Sponsored Placement</div>
+        </aside>
+        <section class="panel panel-editor">
+            <h2>Turn Raw Content Into High-Quality Cornell Notes</h2>
+            <p class="subtitle">Upload PDFs, websites, YouTube videos, audio files, Google Docs, Google Slides, and more. AI will summarize them and build interesting topic connections.</p>
+        {% if mode_tip %}
+            <p class="mode-tip">{{ mode_tip }}</p>
+        {% endif %}
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+            <form class="note-form" action="{{ url_for('generate') }}" method="POST" enctype="multipart/form-data">
+                <label for="source_urls">Source URLs (one per line)</label>
+                <textarea id="source_urls" name="source_urls" rows="4" placeholder="https://example.com/article&#10;https://www.youtube.com/watch?v=...&#10;https://docs.google.com/document/d/..."></textarea>
+
+                <label for="source_files">Upload files (PDF, MP3, WAV, M4A, TXT, MD, CSV)</label>
+                <input id="source_files" type="file" name="source_files" multiple>
+
+                <label for="content">Additional text input</label>
+                <textarea id="content" name="content" rows="15" placeholder="Paste lecture notes or text here..."></textarea>
+                <button type="submit">Generate Cornell Notes</button>
+            </form>
+        </section>
+        <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
+            <div class="ad-slot">Sponsored Placement</div>
+        </aside>
+    </main>
+
+    <section class="container bottom-ad-wrap" aria-label="Bottom advertisement slot">
+        <div class="bottom-ad-slot">Sponsored Placement</div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <p>AI Notes Maker</p>
+            <p>Dashboard</p>
+            <p>Profile</p>
+            <p>Privacy</p>
+            <p>Contact</p>
+        </div>
+    </footer>
+</body>
+</html>
+
+
