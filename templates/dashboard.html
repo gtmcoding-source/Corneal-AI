@@ -14,6 +14,7 @@
         <div class="top-actions">
             <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
             <a class="link-pill" href="{{ url_for('home') }}">Generate</a>
+            <a class="link-pill" href="{{ url_for('checkout', plan='pro') }}">Checkout</a>
             <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
             <a class="link-pill" href="{{ url_for('security') }}">Security</a>
             <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
@@ -54,6 +55,11 @@
                 <h3>Security Section</h3>
                 <p class="subtitle">Check authentication protection, account safety tips, and secure workflow guidance.</p>
                 <a class="link-pill" href="{{ url_for('security') }}">Open Security</a>
+            </article>
+            <article class="dashboard-card">
+                <h3>Billing and Plans</h3>
+                <p class="subtitle">Upgrade with Stripe, PayPal, or Razorpay and apply discount coupons at checkout.</p>
+                <a class="link-pill" href="{{ url_for('checkout', plan='pro') }}">Open Checkout</a>
             </article>
         </section>
     </main>

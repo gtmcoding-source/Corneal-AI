@@ -26,7 +26,10 @@
                 <li><strong>Username:</strong> {{ user.username }}</li>
                 <li><strong>Email:</strong> {{ user.email or 'Not set' }}</li>
                 <li><strong>Mobile:</strong> {{ user.mobile or 'Not set' }}</li>
+                <li><strong>Plan:</strong> {{ (user.plan or 'starter').title() }}</li>
+                <li><strong>Last payment platform:</strong> {{ (user.last_payment_provider or 'Not available').title() }}</li>
             </ul>
+            <a class="link-pill" href="{{ url_for('checkout', plan=(user.plan or 'pro')) }}">Manage Billing</a>
         </section>
     </main>
 

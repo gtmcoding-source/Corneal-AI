@@ -4,13 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Corneal AI - Generate Study Notes</title>
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .brand {
+            display: flex;
+            align-items: center;
+        }
+        .brand img {
+            height: 40px; /* Adjust height as needed */
+            margin-right: 15px; /* Space between logo and text */
+        }
+    </style>
 </head>
 <body class="app-shell">
     <div class="bg-orb orb-a"></div>
     <div class="bg-orb orb-b"></div>
     <nav class="topbar">
-        <h1 class="brand">Corneal AI </h1>
+        <h1 class="brand">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Corneal AI Logo">
+            Corneal AI 
+        </h1>
         <div class="top-actions">
             <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
             <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
@@ -72,14 +88,12 @@
 
     <footer class="site-footer">
         <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>Dashboard</p>
-            <p>Profile</p>
-            <p>Privacy</p>
-            <p>Security</p>
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('profile') }}">Profile</a>
+            <a href="{{ url_for('privacy') }}">Privacy</a>
+            <a href="{{ url_for('terms') }}">Terms</a>
         </div>
     </footer>
 </body>
 </html>
-
-

@@ -12,10 +12,11 @@
     <nav class="topbar">
         <h1 class="brand">Security Section</h1>
         <div class="top-actions">
-            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a class="link-pill" href="{{ url_for('home') }}">Generate</a>
+            <a class="link-pill" href="{{ url_for('landing') }}">Home</a>
+            <a class="link-pill" href="{{ url_for('about') }}">About</a>
             <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
-            <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
+            <a class="link-pill" href="{{ url_for('contact') }}">Contact</a>
+            <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
         </div>
     </nav>
     <main class="container">
@@ -33,11 +34,11 @@
 
     <footer class="site-footer">
         <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>Security</p>
-            <p>Privacy</p>
-            <p>Dashboard</p>
-            <p>Contact</p>
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="{{ url_for('security') }}">Security</a>
+            <a href="{{ url_for('privacy') }}">Privacy</a>
+            <a href="{{ url_for('about') }}">About</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
         </div>
     </footer>
 </body>

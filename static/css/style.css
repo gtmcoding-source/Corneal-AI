@@ -159,10 +159,27 @@ p {
     animation: fadeLift 0.5s ease both;
 }
 
+.business-hero {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.2rem;
+    align-items: stretch;
+}
+
 .landing-hero h2 {
     font-size: clamp(1.6rem, 1.1rem + 2vw, 2.8rem);
     margin-bottom: 0.75rem;
     max-width: 760px;
+}
+
+.hero-cta-row {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+
+.hero-cta-center {
+    justify-content: center;
 }
 
 .hero-cta {
@@ -179,9 +196,72 @@ p {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.hero-cta-alt {
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--ink);
+    border: 1px solid rgba(16, 33, 39, 0.16);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
 .hero-cta:hover {
     transform: translateY(-2px);
     box-shadow: 0 16px 26px rgba(11, 87, 208, 0.32);
+}
+
+.hero-badges {
+    margin-top: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.hero-badges span {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--primary-2);
+    border: 1px solid rgba(11, 87, 208, 0.24);
+    background: rgba(219, 234, 254, 0.62);
+    border-radius: 999px;
+    padding: 0.35rem 0.6rem;
+}
+
+.hero-proof-card {
+    border: 1px solid rgba(16, 33, 39, 0.12);
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(235, 245, 255, 0.85));
+    padding: 1rem;
+    display: grid;
+    gap: 0.85rem;
+}
+
+.hero-proof-title {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.hero-proof-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.hero-proof-grid div {
+    border: 1px solid rgba(16, 33, 39, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.86);
+    padding: 0.6rem;
+    display: grid;
+}
+
+.hero-proof-grid strong {
+    font-size: 1.15rem;
+}
+
+.hero-proof-grid span {
+    color: var(--muted);
+    font-size: 0.82rem;
 }
 
 .trust-strip {
@@ -189,6 +269,25 @@ p {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.5rem;
+}
+
+.brand-strip {
+    padding: 0.85rem 1rem;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.brand-strip p {
+    margin: 0;
+    border: 1px solid rgba(16, 33, 39, 0.1);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.78);
+    color: var(--muted);
+    text-align: center;
+    font-size: 0.83rem;
+    font-weight: 600;
+    padding: 0.55rem 0.65rem;
 }
 
 .trust-strip p {
@@ -378,6 +477,53 @@ p {
     color: var(--muted);
 }
 
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.feature-card {
+    border: 1px solid rgba(16, 33, 39, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+    padding: 1rem;
+}
+
+.feature-card h4 {
+    margin: 0 0 0.35rem;
+}
+
+.feature-card p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.quote-card {
+    margin: 0;
+    border: 1px solid rgba(16, 33, 39, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.78);
+    padding: 1rem;
+}
+
+.quote-card p {
+    margin: 0 0 0.65rem;
+    color: var(--ink);
+}
+
+.quote-card cite {
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-style: normal;
+}
+
 .final-cta {
     padding: clamp(1.2rem, 2.5vw, 2rem);
     text-align: center;
@@ -518,6 +664,7 @@ p {
 }
 
 input,
+select,
 textarea {
     width: 100%;
     padding: 0.9rem 1rem;
@@ -541,6 +688,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
     outline: none;
     border-color: rgba(15, 118, 110, 0.65);
@@ -611,6 +759,16 @@ button:hover {
 
 .site-footer-inner p {
     margin: 0;
+}
+
+.site-footer-inner a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.86rem;
+}
+
+.site-footer-inner a:hover {
+    color: var(--ink);
 }
 
 .error-message {
@@ -717,6 +875,70 @@ button:hover {
     box-shadow: 0 8px 20px rgba(16, 33, 39, 0.11);
 }
 
+.oauth-btn-wide {
+    grid-column: 1 / -1;
+}
+
+.success-message {
+    color: #0b7043;
+    background: #ecfdf3;
+    border: 1px solid rgba(11, 112, 67, 0.25);
+    border-radius: 12px;
+    padding: 0.7rem 0.85rem;
+    margin: 0 0 0.95rem;
+}
+
+.checkout-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.contact-panel {
+    padding: 1.2rem;
+}
+
+.contact-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.contact-form label {
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.hp-field {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.checkout-summary {
+    margin: 1rem 0;
+    border: 1px solid rgba(16, 33, 39, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.75);
+    padding: 0.9rem;
+}
+
+.checkout-summary p {
+    margin: 0 0 0.45rem;
+}
+
+.summary-total {
+    margin-top: 0.7rem !important;
+    font-size: 1.05rem;
+}
+
+.coupon-applied {
+    color: var(--primary-2);
+    font-weight: 700;
+    margin-bottom: 0 !important;
+}
+
 @keyframes fadeLift {
     from {
         opacity: 0;
@@ -791,7 +1013,15 @@ button:hover {
     .steps-grid,
     .metrics-strip,
     .trust-strip,
-    .journey-grid {
+    .journey-grid,
+    .brand-strip,
+    .feature-grid,
+    .testimonial-grid,
+    .hero-proof-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .business-hero {
         grid-template-columns: 1fr;
     }
 

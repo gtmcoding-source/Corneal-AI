@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Sales - AI Notes Maker</title>
+    <meta name="description" content="Contact AI Notes Maker for demos, institution onboarding, and team plan rollout support.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <header class="landing-topbar">
+        <h1 class="brand">AI Notes Maker</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('landing') }}">Home</a>
+            <a class="link-pill" href="{{ url_for('about') }}">About</a>
+            <a class="link-pill" href="{{ url_for('journey') }}">Journey</a>
+            <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
+        </div>
+    </header>
+
+    <main class="landing-main">
+        <section class="panel landing-hero">
+            <p class="eyebrow">Contact and Sales</p>
+            <h2>Tell us what you want to launch</h2>
+            <p class="subtitle">Share your goals, expected users, and timeline. We will recommend the best setup for your team or institution.</p>
+        </section>
+
+        <section class="panel contact-panel">
+            {% if success %}
+                <p class="success-message">{{ success }}</p>
+            {% endif %}
+            {% if error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+            <form class="contact-form" action="{{ url_for('contact') }}" method="POST">
+                <input type="hidden" name="source" value="contact-page">
+                <input class="hp-field" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+                <label for="name">Name</label>
+                <input id="name" type="text" name="name" placeholder="Your full name" required>
+
+                <label for="email">Work email</label>
+                <input id="email" type="email" name="email" placeholder="you@company.com" required>
+
+                <label for="phone">Phone (optional)</label>
+                <input id="phone" type="tel" name="phone" placeholder="10-15 digit phone number">
+
+                <label for="company">Organization (optional)</label>
+                <input id="company" type="text" name="company" placeholder="Company, school, or coaching center">
+
+                <label for="message">What do you need?</label>
+                <textarea id="message" name="message" rows="6" placeholder="Example: We need Team plan for 60 students with onboarding support." required></textarea>
+
+                <button type="submit">Send Request</button>
+            </form>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="{{ url_for('about') }}">About</a>
+            <a href="{{ url_for('security') }}">Security</a>
+            <a href="{{ url_for('privacy') }}">Privacy</a>
+            <a href="{{ url_for('register') }}">Register</a>
+        </div>
+    </footer>
+</body>
+</html>

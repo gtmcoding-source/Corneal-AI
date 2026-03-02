@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ error_code }} - AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <main class="landing-main">
+        <section class="panel final-cta">
+            <p class="eyebrow">Error {{ error_code }}</p>
+            <h3>{{ error_title }}</h3>
+            <p>{{ error_copy }}</p>
+            <div class="hero-cta-row hero-cta-center">
+                <a class="hero-cta" href="{{ url_for('landing') }}">Back to Home</a>
+                <a class="hero-cta hero-cta-alt" href="{{ url_for('contact') }}">Contact Support</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

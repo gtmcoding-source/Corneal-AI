@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms - AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <header class="landing-topbar">
+        <h1 class="brand">AI Notes Maker</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('landing') }}">Home</a>
+            <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
+            <a class="link-pill" href="{{ url_for('security') }}">Security</a>
+            <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
+        </div>
+    </header>
+    <main class="landing-main">
+        <section class="panel landing-card">
+            <h2>Terms of Service</h2>
+            <ul class="landing-list">
+                <li>Use the service responsibly and only with content you are authorized to process.</li>
+                <li>Do not upload illegal, harmful, or confidential information without proper permission.</li>
+                <li>Pricing, features, and limits may change with notice.</li>
+                <li>Accounts violating platform policy may be restricted.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

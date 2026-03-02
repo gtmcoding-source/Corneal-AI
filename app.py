@@ -1,4 +1,5 @@
 from functools import wraps
+import re
 from urllib.parse import urlencode, quote_plus
 
 from flask import Flask, render_template, request, redirect, url_for, session, send_file
@@ -6,7 +7,7 @@ from authlib.integrations.flask_client import OAuth
 from sqlalchemy import inspect, or_, text
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
-from database.models import db, User, Notes
+from database.models import db, User, Notes, Lead
 from utils.ai_handler import generate_notes
 from utils.helpers import generate_pdf
 from utils.source_ingestion import build_source_bundle
@@ -30,9 +31,18 @@ with app.app_context():
             connection.execute(text("ALTER TABLE user ADD COLUMN mobile VARCHAR(20)"))
         if "auth0_sub" not in columns:
             connection.execute(text("ALTER TABLE user ADD COLUMN auth0_sub VARCHAR(255)"))
+        if "oauth_provider" not in columns:
+            connection.execute(text("ALTER TABLE user ADD COLUMN oauth_provider VARCHAR(50)"))
+        if "oauth_sub" not in columns:
+            connection.execute(text("ALTER TABLE user ADD COLUMN oauth_sub VARCHAR(255)"))
+        if "plan" not in columns:
+            connection.execute(text("ALTER TABLE user ADD COLUMN plan VARCHAR(30) DEFAULT 'starter'"))
+        if "last_payment_provider" not in columns:
+            connection.execute(text("ALTER TABLE user ADD COLUMN last_payment_provider VARCHAR(30)"))
         connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_email_unique ON user(email)"))
         connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_mobile_unique ON user(mobile)"))
         connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_auth0_sub_unique ON user(auth0_sub)"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_oauth_provider_sub_unique ON user(oauth_provider, oauth_sub)"))
 
 if Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID and Config.AUTH0_CLIENT_SECRET:
     oauth.register(
@@ -41,6 +51,26 @@ if Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID and Config.AUTH0_CLIENT_SECRET
         client_secret=Config.AUTH0_CLIENT_SECRET,
         client_kwargs={"scope": "openid profile email"},
         server_metadata_url=f"https://{Config.AUTH0_DOMAIN}/.well-known/openid-configuration",
+    )
+
+if Config.GOOGLE_CLIENT_ID and Config.GOOGLE_CLIENT_SECRET:
+    oauth.register(
+        "google",
+        client_id=Config.GOOGLE_CLIENT_ID,
+        client_secret=Config.GOOGLE_CLIENT_SECRET,
+        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+        client_kwargs={"scope": "openid email profile"},
+    )
+
+if Config.GITHUB_CLIENT_ID and Config.GITHUB_CLIENT_SECRET:
+    oauth.register(
+        "github",
+        client_id=Config.GITHUB_CLIENT_ID,
+        client_secret=Config.GITHUB_CLIENT_SECRET,
+        access_token_url="https://github.com/login/oauth/access_token",
+        authorize_url="https://github.com/login/oauth/authorize",
+        api_base_url="https://api.github.com/",
+        client_kwargs={"scope": "user:email"},
     )
 
 # ==============================
@@ -75,8 +105,54 @@ MODE_CONFIG = {
     }
 }
 
+PLAN_CONFIG = {
+    "starter": {"name": "Starter", "price_cents": 0},
+    "pro": {"name": "Pro", "price_cents": 900},
+    "team": {"name": "Team", "price_cents": 2900},
+    "institution": {"name": "Institution", "price_cents": 9900},
+}
+
+PAYMENT_PROVIDERS = {
+    "stripe": {"label": "Stripe", "checkout_url": Config.STRIPE_CHECKOUT_URL},
+    "paypal": {"label": "PayPal", "checkout_url": Config.PAYPAL_CHECKOUT_URL},
+    "razorpay": {"label": "Razorpay", "checkout_url": Config.RAZORPAY_CHECKOUT_URL},
+}
+
+COUPON_CONFIG = {
+    "WELCOME10": {"type": "percent", "value": 10, "description": "10% off for new users"},
+    "TEAM20": {"type": "percent", "value": 20, "description": "20% off for team plans"},
+    "SAVE500": {"type": "fixed", "value": 500, "description": "$5.00 off paid plans"},
+}
+
 def normalize_mobile(value):
     return "".join(char for char in value if char.isdigit())
+
+
+def is_valid_mobile(value):
+    return 10 <= len(value) <= 15
+
+
+def is_valid_email(value):
+    cleaned = (value or "").strip()
+    return "@" in cleaned and "." in cleaned.split("@")[-1]
+
+
+def is_strong_password(password):
+    candidate = password or ""
+    if len(candidate) < 8:
+        return False
+    has_upper = any(ch.isupper() for ch in candidate)
+    has_lower = any(ch.islower() for ch in candidate)
+    has_digit = any(ch.isdigit() for ch in candidate)
+    return has_upper and has_lower and has_digit
+
+
+def _safe_next_url(next_url):
+    if not next_url:
+        return None
+    if next_url.startswith("/") and not next_url.startswith("//"):
+        return next_url
+    return None
 
 
 def build_unique_username(seed):
@@ -95,7 +171,7 @@ def login_required(view_func):
     @wraps(view_func)
     def wrapped_view(*args, **kwargs):
         if "user_id" not in session:
-            return redirect(url_for("login"))
+            return redirect(url_for("login", next=request.path))
         return view_func(*args, **kwargs)
     return wrapped_view
 
@@ -103,6 +179,31 @@ def login_required(view_func):
 def _resolve_mode(raw_mode):
     mode = (raw_mode or "").strip().lower()
     return mode if mode in MODE_CONFIG else "text"
+
+
+def _resolve_plan(raw_plan):
+    plan_key = (raw_plan or "").strip().lower()
+    return plan_key if plan_key in PLAN_CONFIG else "starter"
+
+
+def _coupon_discount(plan_key, coupon_code, base_cents):
+    normalized = (coupon_code or "").strip().upper()
+    if not normalized:
+        return 0, None, None
+
+    coupon = COUPON_CONFIG.get(normalized)
+    if not coupon:
+        return 0, None, "Coupon code is invalid."
+
+    if normalized == "TEAM20" and plan_key != "team":
+        return 0, normalized, "TEAM20 works only for the Team plan."
+
+    if coupon["type"] == "percent":
+        discount = int(base_cents * coupon["value"] / 100)
+    else:
+        discount = coupon["value"]
+
+    return max(0, min(discount, base_cents)), normalized, None
 
 
 def _render_generator(mode, error=None):
@@ -115,6 +216,15 @@ def _render_generator(mode, error=None):
         mode_tip=MODE_CONFIG[active_mode]["tip"],
         error=error
     )
+
+
+@app.after_request
+def apply_security_headers(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    return response
 
 # ==============================
 # Routes
@@ -147,19 +257,65 @@ def dashboard():
 
 
 @app.route("/privacy")
-@login_required
 def privacy():
     return render_template("privacy.html")
 
 
 @app.route("/security")
-@login_required
 def security():
     return render_template("security.html")
 
 @app.route("/about")
 def about():
     return render_template("about.html")
+
+
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    success = None
+    error = None
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        phone = normalize_mobile(request.form.get("phone", "").strip())
+        company = request.form.get("company", "").strip()
+        message = request.form.get("message", "").strip()
+        source = request.form.get("source", "website").strip() or "website"
+        website = request.form.get("website", "").strip()
+
+        if website:
+            error = "Request could not be processed."
+        elif not name or not email or not message:
+            error = "Name, email, and message are required."
+        elif not is_valid_email(email):
+            error = "Please provide a valid email address."
+        elif phone and not is_valid_mobile(phone):
+            error = "Phone number must be 10 to 15 digits."
+        else:
+            lead = Lead(
+                name=name,
+                email=email,
+                phone=phone or None,
+                company=company or None,
+                message=message,
+                source=source[:60],
+            )
+            db.session.add(lead)
+            db.session.commit()
+            success = "Thanks. Your request has been received. We will contact you soon."
+
+    return render_template("contact.html", success=success, error=error)
+
+
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
 
 @app.route("/profile")
 @login_required
@@ -169,27 +325,39 @@ def profile():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    selected_plan = _resolve_plan(request.values.get("plan"))
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         email = request.form.get("email", "").strip().lower()
         mobile = normalize_mobile(request.form.get("mobile", "").strip())
         password = request.form.get("password", "").strip()
+        selected_plan = _resolve_plan(request.form.get("plan"))
 
         if not password:
-            return render_template("register.html", error="Password is required."), 400
+            return render_template("register.html", error="Password is required.", selected_plan=selected_plan), 400
+        if not is_strong_password(password):
+            return render_template(
+                "register.html",
+                error="Use a strong password with at least 8 characters, including uppercase, lowercase, and a number.",
+                selected_plan=selected_plan,
+            ), 400
 
         if not username and not email and not mobile:
-            return render_template("register.html", error="Add username, email, or mobile to register."), 400
+            return render_template("register.html", error="Add username, email, or mobile to register.", selected_plan=selected_plan), 400
+
+        if mobile and not is_valid_mobile(mobile):
+            return render_template("register.html", error="Use a valid mobile number (10 to 15 digits).", selected_plan=selected_plan), 400
 
         if username and User.query.filter_by(username=username).first():
-            return render_template("register.html", error="Username already exists."), 409
+            return render_template("register.html", error="Username already exists.", selected_plan=selected_plan), 409
         if email and User.query.filter_by(email=email).first():
-            return render_template("register.html", error="Email already exists."), 409
+            return render_template("register.html", error="Email already exists.", selected_plan=selected_plan), 409
         if mobile and User.query.filter_by(mobile=mobile).first():
-            return render_template("register.html", error="Mobile number already exists."), 409
+            return render_template("register.html", error="Mobile number already exists.", selected_plan=selected_plan), 409
 
         if not username:
             username = email or mobile
+        username = re.sub(r"\s+", "_", username.strip())
 
         # Hash password for security
         hashed_pw = generate_password_hash(password, method="pbkdf2:sha256")
@@ -198,22 +366,30 @@ def register():
             username=username,
             email=email or None,
             mobile=mobile or None,
+            plan=selected_plan,
             password=hashed_pw
         )
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect(url_for("login"))
-    return render_template("register.html")
+        session.clear()
+        session["user_id"] = new_user.id
+
+        if PLAN_CONFIG[selected_plan]["price_cents"] > 0:
+            return redirect(url_for("checkout", plan=selected_plan))
+        return redirect(url_for("home"))
+    return render_template("register.html", selected_plan=selected_plan)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    safe_next = _safe_next_url(request.values.get("next"))
     if request.method == "POST":
         identifier = request.form.get("identifier", "").strip()
         password = request.form.get("password", "").strip()
+        safe_next = _safe_next_url(request.form.get("next"))
 
         if not identifier or not password:
-            return render_template("login.html", error="Identifier and password are required."), 400
+            return render_template("login.html", error="Identifier and password are required.", next_url=safe_next), 400
 
         lowered_identifier = identifier.lower()
         mobile_identifier = normalize_mobile(identifier)
@@ -231,16 +407,16 @@ def login():
         if user and check_password_hash(user.password, password):
             session.clear()
             session["user_id"] = user.id
-            return redirect(url_for("home"))
+            return redirect(safe_next or url_for("home"))
 
-        return render_template("login.html", error="Invalid credentials."), 401
-    return render_template("login.html")
+        return render_template("login.html", error="Invalid credentials.", next_url=safe_next), 401
+    return render_template("login.html", next_url=safe_next)
 
 @app.route("/login/oauth/<provider>")
 def oauth_login(provider):
     provider_key = provider.strip().lower()
-    if provider_key == "auth0":
-        return redirect(url_for("auth0_login"))
+    if provider_key in {"auth0", "google", "github"}:
+        return redirect(url_for(f"{provider_key}_login"))
     return render_template("login.html", error="Requested login provider is not available."), 404
 
 
@@ -253,7 +429,50 @@ def auth0_login():
     )
 
 
+def _login_oauth_user(provider_name, provider_sub, email=None, display_name=None):
+    if not provider_sub:
+        return render_template("login.html", error=f"{provider_name.title()} did not return a user id."), 401
+
+    normalized_email = (email or "").strip().lower() or None
+    user = User.query.filter_by(oauth_provider=provider_name, oauth_sub=provider_sub).first()
+    if not user and provider_name == "auth0":
+        user = User.query.filter_by(auth0_sub=provider_sub).first()
+        if user:
+            user.oauth_provider = "auth0"
+            user.oauth_sub = provider_sub
+
+    if not user and normalized_email:
+        user = User.query.filter_by(email=normalized_email).first()
+        if user:
+            user.oauth_provider = provider_name
+            user.oauth_sub = provider_sub
+            if provider_name == "auth0":
+                user.auth0_sub = provider_sub
+            if not user.username:
+                user.username = build_unique_username(display_name or normalized_email.split("@")[0])
+
+    if not user:
+        username_seed = display_name or (normalized_email.split("@")[0] if normalized_email else provider_sub.split("|")[-1])
+        user = User(
+            username=build_unique_username(username_seed),
+            email=normalized_email,
+            oauth_provider=provider_name,
+            oauth_sub=provider_sub,
+            auth0_sub=provider_sub if provider_name == "auth0" else None,
+            password=generate_password_hash(f"{provider_name}:{provider_sub}", method="pbkdf2:sha256"),
+        )
+        db.session.add(user)
+
+    db.session.commit()
+
+    session.clear()
+    session["user_id"] = user.id
+    session["oauth_provider"] = provider_name
+    return redirect(url_for("home"))
+
+
 @app.route("/callback")
+@app.route("/callback/auth0")
 def auth0_callback():
     if not getattr(oauth, "auth0", None):
         return render_template("login.html", error="Auth0 is not configured."), 500
@@ -264,36 +483,76 @@ def auth0_callback():
 
     user_info = token.get("userinfo", {}) if token else {}
     auth0_sub = (user_info.get("sub") or "").strip()
-    if not auth0_sub:
-        return render_template("login.html", error="Auth0 did not return a user id."), 401
-
     email = (user_info.get("email") or "").strip().lower() or None
     display_name = (user_info.get("nickname") or user_info.get("name") or "").strip()
+    return _login_oauth_user("auth0", auth0_sub, email=email, display_name=display_name)
 
-    user = User.query.filter_by(auth0_sub=auth0_sub).first()
-    if not user and email:
-        user = User.query.filter_by(email=email).first()
-        if user:
-            user.auth0_sub = auth0_sub
-            if not user.username:
-                user.username = build_unique_username(display_name or email.split("@")[0])
 
-    if not user:
-        username_seed = display_name or (email.split("@")[0] if email else auth0_sub.split("|")[-1])
-        user = User(
-            username=build_unique_username(username_seed),
-            email=email,
-            auth0_sub=auth0_sub,
-            password=generate_password_hash(auth0_sub, method="pbkdf2:sha256")
-        )
-        db.session.add(user)
+@app.route("/login/google")
+def google_login():
+    if not getattr(oauth, "google", None):
+        return render_template("login.html", error="Google login is not configured."), 500
+    return oauth.google.authorize_redirect(
+        redirect_uri=url_for("google_callback", _external=True)
+    )
 
-    db.session.commit()
 
-    session.clear()
-    session["user_id"] = user.id
-    session["auth0_sub"] = auth0_sub
-    return redirect(url_for("home"))
+@app.route("/callback/google")
+def google_callback():
+    if not getattr(oauth, "google", None):
+        return render_template("login.html", error="Google login is not configured."), 500
+    try:
+        token = oauth.google.authorize_access_token()
+    except Exception as exc:
+        return render_template("login.html", error=f"Google login failed: {exc}"), 401
+
+    user_info = token.get("userinfo") or {}
+    if not user_info:
+        try:
+            user_info = oauth.google.parse_id_token(token)
+        except Exception:
+            user_info = {}
+
+    google_sub = (user_info.get("sub") or "").strip()
+    email = (user_info.get("email") or "").strip().lower() or None
+    display_name = (user_info.get("name") or user_info.get("given_name") or "").strip()
+    return _login_oauth_user("google", google_sub, email=email, display_name=display_name)
+
+
+@app.route("/login/github")
+def github_login():
+    if not getattr(oauth, "github", None):
+        return render_template("login.html", error="GitHub login is not configured."), 500
+    return oauth.github.authorize_redirect(
+        redirect_uri=url_for("github_callback", _external=True)
+    )
+
+
+@app.route("/callback/github")
+def github_callback():
+    if not getattr(oauth, "github", None):
+        return render_template("login.html", error="GitHub login is not configured."), 500
+    try:
+        oauth.github.authorize_access_token()
+    except Exception as exc:
+        return render_template("login.html", error=f"GitHub login failed: {exc}"), 401
+
+    profile_resp = oauth.github.get("user")
+    profile_data = profile_resp.json() if profile_resp else {}
+
+    github_sub = str(profile_data.get("id") or "").strip()
+    display_name = (profile_data.get("name") or profile_data.get("login") or "").strip()
+    email = (profile_data.get("email") or "").strip().lower() or None
+
+    if not email:
+        emails_resp = oauth.github.get("user/emails")
+        emails = emails_resp.json() if emails_resp else []
+        primary = next((item for item in emails if item.get("primary") and item.get("verified")), None)
+        fallback = next((item for item in emails if item.get("verified")), None)
+        chosen = primary or fallback or {}
+        email = (chosen.get("email") or "").strip().lower() or None
+
+    return _login_oauth_user("github", github_sub, email=email, display_name=display_name)
 
 @app.route("/logout")
 @login_required
@@ -306,6 +565,67 @@ def logout():
         }
         return redirect(f"https://{Config.AUTH0_DOMAIN}/v2/logout?{urlencode(params, quote_via=quote_plus)}")
     return redirect(url_for("login"))
+
+
+@app.route("/checkout", methods=["GET", "POST"])
+@login_required
+def checkout():
+    plan_key = _resolve_plan(request.values.get("plan"))
+    if plan_key == "institution":
+        return redirect(url_for("contact"))
+
+    plan_details = PLAN_CONFIG[plan_key]
+    base_cents = plan_details["price_cents"]
+    provider_key = (request.values.get("payment_provider") or "stripe").strip().lower()
+    if provider_key not in PAYMENT_PROVIDERS:
+        provider_key = "stripe"
+
+    coupon_code = (request.values.get("coupon_code") or "").strip().upper()
+    discount_cents, applied_coupon, coupon_error = _coupon_discount(plan_key, coupon_code, base_cents)
+    final_cents = max(base_cents - discount_cents, 0)
+
+    success_message = None
+    if request.method == "POST" and request.form.get("action") == "pay_now":
+        user = User.query.get_or_404(session["user_id"])
+        user.plan = plan_key
+        user.last_payment_provider = provider_key
+        db.session.commit()
+
+        provider_url = PAYMENT_PROVIDERS[provider_key]["checkout_url"]
+        if provider_url and final_cents > 0:
+            payment_params = urlencode(
+                {
+                    "plan": plan_key,
+                    "amount_cents": final_cents,
+                    "coupon": applied_coupon or "",
+                    "user_id": user.id,
+                }
+            )
+            separator = "&" if "?" in provider_url else "?"
+            return redirect(f"{provider_url}{separator}{payment_params}")
+
+        if final_cents == 0:
+            success_message = f"{plan_details['name']} plan activated successfully."
+        else:
+            success_message = (
+                f"Demo payment completed via {PAYMENT_PROVIDERS[provider_key]['label']} "
+                f"for ${final_cents / 100:.2f}. Configure checkout URL in .env for live redirect."
+            )
+
+    return render_template(
+        "payment.html",
+        plan_key=plan_key,
+        plan_name=plan_details["name"],
+        base_cents=base_cents,
+        discount_cents=discount_cents,
+        final_cents=final_cents,
+        selected_provider=provider_key,
+        providers=PAYMENT_PROVIDERS,
+        coupon_code=coupon_code,
+        applied_coupon=applied_coupon,
+        coupon_error=coupon_error,
+        success_message=success_message,
+    )
 
 @app.route("/generate", methods=["POST"])
 @login_required
@@ -370,6 +690,17 @@ def download_note(note_id):
         download_name=f"Study_Notes_{note_id}.pdf",
         mimetype="application/pdf"
     )
+
+
+@app.errorhandler(404)
+def not_found_error(_error):
+    return render_template("error.html", error_code=404, error_title="Page Not Found", error_copy="The page you requested does not exist."), 404
+
+
+@app.errorhandler(500)
+def internal_error(_error):
+    db.session.rollback()
+    return render_template("error.html", error_code=500, error_title="Server Error", error_copy="Something went wrong on our side. Please try again."), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

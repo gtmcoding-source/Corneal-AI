@@ -10,28 +10,71 @@
     <div class="bg-orb orb-a"></div>
     <div class="bg-orb orb-b"></div>
     <header class="landing-topbar">
-        <h1 class="brand">About AI Notes Maker</h1>
+        <h1 class="brand">AI Notes Maker</h1>
         <div class="top-actions">
             <a class="link-pill" href="{{ url_for('landing') }}">Home</a>
-            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
+            <a class="link-pill" href="{{ url_for('journey') }}">Journey</a>
+            <a class="link-pill" href="{{ url_for('contact') }}">Contact</a>
             <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
         </div>
     </header>
     <main class="landing-main">
-        <section class="panel landing-card">
-            <h2>What this platform does</h2>
-            <p>AI Notes Maker converts PDFs, websites, YouTube videos, audio, and mixed text sources into structured Cornell notes.</p>
-            <p>It is designed to summarize clearly, connect topics across sources, and help faster revision workflows.</p>
+        <section class="panel landing-hero">
+            <p class="eyebrow">About The Product</p>
+            <h2>Built to make high-quality learning output consistent</h2>
+            <p class="subtitle">AI Notes Maker started with one problem: most learners spend too much time creating notes and too little time revising them. Our platform fixes that ratio.</p>
+        </section>
+
+        <section class="landing-sections">
+            <article class="panel landing-card">
+                <h3>Mission</h3>
+                <p>Give every learner and educator a fast, structured, and reliable note workflow from any content source.</p>
+            </article>
+            <article class="panel landing-card">
+                <h3>Vision</h3>
+                <p>Become the default AI note infrastructure for students, test-prep centers, and modern learning teams.</p>
+            </article>
+        </section>
+
+        <section class="panel landing-wide">
+            <h3>Core product strengths</h3>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <h4>Multi-source ingestion</h4>
+                    <p>Text, PDFs, web pages, YouTube, and files all flow into one unified summary output.</p>
+                </article>
+                <article class="feature-card">
+                    <h4>Business-ready auth</h4>
+                    <p>OAuth support for Gmail and GitHub with flexible login options for operational scale.</p>
+                </article>
+                <article class="feature-card">
+                    <h4>Plan and billing workflow</h4>
+                    <p>Starter, Pro, Team, and Institution with coupon-ready payment journey.</p>
+                </article>
+                <article class="feature-card">
+                    <h4>Export and retention</h4>
+                    <p>Saved history and PDF exports for review workflows and long-term study tracking.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="panel final-cta">
+            <h3>Want to deploy for your cohort or team?</h3>
+            <p>We can help you launch with best-practice setup, onboarding flow, and rollout guidance.</p>
+            <div class="hero-cta-row hero-cta-center">
+                <a class="hero-cta" href="{{ url_for('contact') }}">Talk to Sales</a>
+                <a class="hero-cta hero-cta-alt" href="{{ url_for('register', plan='team') }}">Start Team Plan</a>
+            </div>
         </section>
     </main>
 
     <footer class="site-footer">
         <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>About</p>
-            <p>Security</p>
-            <p>Terms</p>
-            <p>Contact</p>
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="{{ url_for('about') }}">About</a>
+            <a href="{{ url_for('security') }}">Security</a>
+            <a href="{{ url_for('privacy') }}">Privacy</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
         </div>
     </footer>
 </body>

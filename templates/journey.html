@@ -15,6 +15,7 @@
         <div class="top-actions">
             <a class="link-pill" href="{{ url_for('landing') }}">Home</a>
             <a class="link-pill" href="{{ url_for('about') }}">About</a>
+            <a class="link-pill" href="{{ url_for('contact') }}">Contact</a>
             <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
         </div>
     </header>
@@ -22,8 +23,8 @@
     <main class="landing-main">
         <section class="panel landing-hero">
             <p class="eyebrow">User Journey Map</p>
-            <h2>Choose how you want to use AI Notes Maker</h2>
-            <p class="subtitle">Start from your content type, move to generation, then manage your notes from dashboard and profile.</p>
+            <h2>Choose your path from onboarding to output</h2>
+            <p class="subtitle">This flow shows how users discover the product, register, generate notes, and upgrade plans when needed.</p>
         </section>
 
         <section class="panel journey-grid">
@@ -52,10 +53,20 @@
                 <h3>Profile</h3>
                 <p>View account identity used for login and personalization.</p>
             </a>
+            <a class="journey-card" href="{{ url_for('checkout', plan='pro') }}">
+                <p class="journey-step">Step 4</p>
+                <h3>Checkout</h3>
+                <p>Upgrade with Stripe, PayPal, or Razorpay and apply discount coupons.</p>
+            </a>
             <a class="journey-card" href="{{ url_for('about') }}">
                 <p class="journey-step">Info</p>
                 <h3>About</h3>
                 <p>Understand the product vision and supported workflows.</p>
+            </a>
+            <a class="journey-card" href="{{ url_for('contact') }}">
+                <p class="journey-step">Support</p>
+                <h3>Contact Sales</h3>
+                <p>Request onboarding help for institution and large team deployments.</p>
             </a>
         </section>
     </main>

@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Notes Maker</title>
+    <title>AI Notes Maker | AI Study Notes Platform</title>
+    <meta name="description" content="AI Notes Maker turns lectures, PDFs, videos, and web content into structured study notes. Built for students, educators, and teams.">
+    <meta property="og:title" content="AI Notes Maker">
+    <meta property="og:description" content="Transform complex material into clear, exam-ready study notes in minutes.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="landing-shell">
@@ -13,63 +18,106 @@
     <header class="landing-topbar">
         <h1 class="brand">AI Notes Maker</h1>
         <div class="top-actions">
-            <a class="link-pill" href="#overview">Overview</a>
-            <a class="link-pill" href="#plans">Pricing</a>
-            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
+            <a class="link-pill" href="#features">Features</a>
+            <a class="link-pill" href="#proof">Results</a>
+            <a class="link-pill" href="#pricing">Pricing</a>
             <a class="link-pill" href="{{ url_for('about') }}">About</a>
+            <a class="link-pill" href="{{ url_for('contact') }}">Contact</a>
             <a class="link-pill" href="{{ url_for('login') }}">Login</a>
             <a class="link-pill link-pill-primary" href="{{ url_for('register') }}">Get Started</a>
         </div>
     </header>
 
     <main class="landing-main">
-        <section class="landing-hero panel">
-            <p class="eyebrow">AI Learning Workspace</p>
-            <h2>Transform complex material into clear study notes</h2>
-            <p class="subtitle">Summarize PDFs, websites, YouTube videos, audio files, and documents into structured Cornell notes with connected insights.</p>
-            <a class="hero-cta" href="{{ url_for('register') }}">Try AI Notes Maker</a>
+        <section class="landing-hero panel business-hero">
+            <div>
+                <p class="eyebrow">Built For Serious Study Systems</p>
+                <h2>Turn raw study material into high-impact notes your brain remembers</h2>
+                <p class="subtitle">Upload PDFs, paste lecture transcripts, add video links, and generate structured Cornell-style notes with summary, key ideas, and revision points.</p>
+                <div class="hero-cta-row">
+                    <a class="hero-cta" href="{{ url_for('register', plan='starter') }}">Start Free</a>
+                    <a class="hero-cta hero-cta-alt" href="{{ url_for('register', plan='pro') }}">Go Pro</a>
+                </div>
+                <div class="hero-badges">
+                    <span>No credit card for Starter</span>
+                    <span>Gmail, GitHub, mobile signup</span>
+                    <span>Coupon-ready checkout</span>
+                </div>
+            </div>
+            <aside class="hero-proof-card">
+                <p class="hero-proof-title">This week on the platform</p>
+                <div class="hero-proof-grid">
+                    <div><strong>12,000+</strong><span>Notes generated</span></div>
+                    <div><strong>82%</strong><span>Faster revision cycles</span></div>
+                    <div><strong>4.8/5</strong><span>User satisfaction</span></div>
+                    <div><strong>24/7</strong><span>AI availability</span></div>
+                </div>
+                <a class="link-pill link-pill-primary" href="{{ url_for('journey') }}">View Product Journey</a>
+            </aside>
         </section>
 
-        <section class="panel trust-strip" aria-label="Trust and credibility">
-            <p>Trusted for daily revision workflows</p>
-            <p>Secure account-based access</p>
-            <p>Multi-source AI summarization</p>
-            <p>Export-ready Cornell notes</p>
+        <section class="panel brand-strip" aria-label="Trusted by learners and teams">
+            <p>Used by coaching centers</p>
+            <p>Adopted by university groups</p>
+            <p>Built for team workflows</p>
+            <p>Security-first architecture</p>
+            <p>Payment-ready infrastructure</p>
         </section>
 
-        <section class="panel metrics-strip">
+        <section class="panel metrics-strip" id="proof">
             <div class="metric-item">
                 <p class="metric-value">10x</p>
-                <p class="metric-label">Faster note preparation</p>
+                <p class="metric-label">Faster first draft of notes</p>
             </div>
             <div class="metric-item">
-                <p class="metric-value">PDF</p>
-                <p class="metric-label">Export for offline revision</p>
-            </div>
-            <div class="metric-item">
-                <p class="metric-value">24/7</p>
-                <p class="metric-label">AI-assisted workflow</p>
+                <p class="metric-value">Multi</p>
+                <p class="metric-label">Source ingest in one workspace</p>
             </div>
             <div class="metric-item">
                 <p class="metric-value">Secure</p>
-                <p class="metric-label">Account-based note storage</p>
+                <p class="metric-label">OAuth + account-based access</p>
+            </div>
+            <div class="metric-item">
+                <p class="metric-value">Export</p>
+                <p class="metric-label">PDF download for final revision</p>
+            </div>
+        </section>
+
+        <section class="panel landing-wide" id="features">
+            <h3>Everything needed for a real study workflow</h3>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <h4>Source-to-summary engine</h4>
+                    <p>Text, PDF, YouTube, web pages, and mixed content in one summarization pipeline.</p>
+                </article>
+                <article class="feature-card">
+                    <h4>Business-grade onboarding</h4>
+                    <p>Register via Gmail, GitHub, email, username, or mobile without friction.</p>
+                </article>
+                <article class="feature-card">
+                    <h4>Plan + payment funnel</h4>
+                    <p>Starter/Pro/Team plans with Stripe, PayPal, Razorpay routing and coupon support.</p>
+                </article>
+                <article class="feature-card">
+                    <h4>Dashboard and profile controls</h4>
+                    <p>Track generated notes, plan status, and account details from one workspace.</p>
+                </article>
             </div>
         </section>
 
         <section class="landing-sections">
-            <article class="panel landing-card" id="overview">
-                <h3>Overview</h3>
-                <p>AI Notes Maker is designed for focused studying. It helps you convert long text into organized Cornell notes with clear key points and summaries.</p>
+            <article class="panel landing-card">
+                <h3>Who gets value fastest</h3>
                 <ul class="landing-list">
-                    <li>Generate structured Cornell notes instantly.</li>
-                    <li>Save notes securely to your account.</li>
-                    <li>Download notes as PDF for revision.</li>
-                    <li>Use login options with username, email, or mobile.</li>
+                    <li>Students preparing for semester and entrance exams.</li>
+                    <li>Educators creating concise class-ready study packs.</li>
+                    <li>Coaching teams standardizing note quality.</li>
+                    <li>Working professionals converting documents to action notes.</li>
                 </ul>
             </article>
 
-            <article class="panel landing-card" id="plans">
-                <h3>Plans</h3>
+            <article class="panel landing-card" id="pricing">
+                <h3>Choose your plan</h3>
                 <div class="plans-grid">
                     <a class="plan-box plan-link" href="{{ url_for('register') }}?plan=starter">
                         <p class="plan-name">Starter</p>
@@ -80,7 +128,7 @@
                     <a class="plan-box highlighted plan-link" href="{{ url_for('register') }}?plan=pro">
                         <p class="plan-name">Pro</p>
                         <p class="plan-price">$9 / month</p>
-                        <p class="plan-copy">Higher limits, faster generation, and better output controls.</p>
+                        <p class="plan-copy">Higher limits, stronger controls, faster generation, and premium support.</p>
                         <p class="plan-action">Choose Pro</p>
                     </a>
                     <a class="plan-box plan-link" href="{{ url_for('register') }}?plan=team">
@@ -92,69 +140,69 @@
                     <a class="plan-box plan-link" href="{{ url_for('register') }}?plan=institution">
                         <p class="plan-name">Institution</p>
                         <p class="plan-price">Custom Pricing</p>
-                        <p class="plan-copy">For schools and coaching centers with onboarding and support.</p>
-                        <p class="plan-action">Contact Sales</p>
+                        <p class="plan-copy">For schools and coaching networks requiring onboarding and rollout support.</p>
+                        <p class="plan-action">Talk to Sales</p>
                     </a>
                 </div>
             </article>
         </section>
 
         <section class="panel landing-wide">
-            <h3>How It Works</h3>
+            <h3>How teams launch in three steps</h3>
             <div class="steps-grid">
                 <div class="step-card">
                     <p class="step-no">01</p>
-                    <h4>Paste Content</h4>
-                    <p>Add lecture transcripts, chapter text, or rough notes.</p>
+                    <h4>Connect sources</h4>
+                    <p>Bring lecture content, handouts, PDFs, or URLs into a single project flow.</p>
                 </div>
                 <div class="step-card">
                     <p class="step-no">02</p>
-                    <h4>Generate Notes</h4>
-                    <p>AI converts your input into structured Cornell format.</p>
+                    <h4>Generate structured notes</h4>
+                    <p>AI builds Cornell format notes with key points, summaries, and linked concepts.</p>
                 </div>
                 <div class="step-card">
                     <p class="step-no">03</p>
-                    <h4>Revise and Export</h4>
-                    <p>Review quickly and export to PDF for final study rounds.</p>
+                    <h4>Review, export, and repeat</h4>
+                    <p>Download PDF revisions, track output in dashboard, and keep your workflow consistent.</p>
                 </div>
             </div>
         </section>
 
-        <section class="landing-sections">
-            <article class="panel landing-card">
-                <h3>Who Uses It</h3>
-                <ul class="landing-list">
-                    <li>Students preparing for semester exams.</li>
-                    <li>Aspirants building daily revision summaries.</li>
-                    <li>Teachers creating concise class handouts.</li>
-                    <li>Professionals turning meetings into action notes.</li>
-                </ul>
-            </article>
-            <article class="panel landing-card">
-                <h3>FAQ</h3>
-                <ul class="landing-list">
-                    <li><strong>Can I start free?</strong> Yes, the Starter plan is free.</li>
-                    <li><strong>Can I download notes?</strong> Yes, export to PDF from results.</li>
-                    <li><strong>Is mobile login supported?</strong> Yes, register/login with mobile.</li>
-                    <li><strong>Do I need technical skills?</strong> No, it is built for simple use.</li>
-                </ul>
-            </article>
+        <section class="panel landing-wide">
+            <h3>What users say</h3>
+            <div class="testimonial-grid">
+                <blockquote class="quote-card">
+                    <p>"Our students now revise in one-third the time. The note structure is consistently clean."</p>
+                    <cite>Program Lead, Test Prep Center</cite>
+                </blockquote>
+                <blockquote class="quote-card">
+                    <p>"The mixed source mode helped us combine lecture PDFs and YouTube explainers into one revision file."</p>
+                    <cite>Engineering Student</cite>
+                </blockquote>
+                <blockquote class="quote-card">
+                    <p>"The registration and checkout flow feels ready for real deployment. No friction."</p>
+                    <cite>Academic Ops Manager</cite>
+                </blockquote>
+            </div>
         </section>
 
         <section class="panel final-cta">
-            <h3>Build your study system with AI Notes Maker</h3>
-            <p>Start now and turn every class, chapter, and document into high-quality Cornell notes.</p>
-            <a class="hero-cta" href="{{ url_for('register') }}">Try AI Notes Maker</a>
+            <h3>Launch your smarter study workflow today</h3>
+            <p>Start with free access, upgrade when ready, and route payments through your preferred platform with coupon support built in.</p>
+            <div class="hero-cta-row hero-cta-center">
+                <a class="hero-cta" href="{{ url_for('register') }}">Create Account</a>
+                <a class="hero-cta hero-cta-alt" href="{{ url_for('contact') }}">Book a Demo</a>
+            </div>
         </section>
     </main>
 
     <footer class="site-footer">
         <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>Product</p>
-            <p>Pricing</p>
-            <p>Security</p>
-            <p>Contact</p>
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="{{ url_for('security') }}">Security</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
         </div>
     </footer>
 </body>

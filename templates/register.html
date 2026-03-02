@@ -12,17 +12,23 @@
     <main class="auth-wrap">
         <section class="auth-container panel">
             <p class="eyebrow">Create Account</p>
-            <h2>Register with username, email, or mobile</h2>
+            <h2>Register with Gmail, GitHub, or mobile phone</h2>
             {% if error %}
                 <p class="error-message">{{ error }}</p>
             {% endif %}
+            <div class="oauth-row">
+                <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
+                <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
+            </div>
             <form class="auth-form" action="{{ url_for('register') }}" method="POST">
-                <input type="text" name="username" placeholder="Username">
+                <input type="hidden" name="plan" value="{{ selected_plan or 'starter' }}">
+                <input type="text" name="username" placeholder="Username (optional)">
                 <input type="email" name="email" placeholder="Email (optional)">
-                <input type="tel" name="mobile" placeholder="Mobile (optional)">
+                <input type="tel" name="mobile" placeholder="Mobile phone (10-15 digits, optional)">
                 <input type="password" name="password" placeholder="Password" required>
-                <button type="submit">Register</button>
+                <button type="submit">Register and Continue</button>
             </form>
+            <p class="subtitle">Selected plan: <strong>{{ (selected_plan or 'starter').title() }}</strong></p>
             <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
         </section>
 
@@ -33,11 +39,11 @@
 
     <footer class="site-footer">
         <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>Register</p>
-            <p>Privacy</p>
-            <p>Terms</p>
-            <p>Contact</p>
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="{{ url_for('register') }}">Register</a>
+            <a href="{{ url_for('privacy') }}">Privacy</a>
+            <a href="{{ url_for('terms') }}">Terms</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
         </div>
     </footer>
 </body>

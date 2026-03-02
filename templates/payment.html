@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - AI Notes Maker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <nav class="topbar">
+        <h1 class="brand">Checkout</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="link-pill" href="{{ url_for('home') }}">Generate</a>
+            <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
+            <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="panel landing-card">
+            <p class="eyebrow">Payment Platforms</p>
+            <h2>{{ plan_name }} Plan Checkout</h2>
+            <p class="subtitle">Select payment platform, apply a coupon, and complete your plan activation.</p>
+
+            {% if coupon_error %}
+                <p class="error-message">{{ coupon_error }}</p>
+            {% endif %}
+            {% if success_message %}
+                <p class="success-message">{{ success_message }}</p>
+            {% endif %}
+
+            <form class="checkout-form" action="{{ url_for('checkout') }}" method="POST">
+                <input type="hidden" name="plan" value="{{ plan_key }}">
+                <input type="hidden" name="action" value="apply_coupon">
+                <label for="payment_provider">Payment platform</label>
+                <select id="payment_provider" name="payment_provider">
+                    {% for provider_key, provider_meta in providers.items() %}
+                        <option value="{{ provider_key }}" {% if selected_provider == provider_key %}selected{% endif %}>
+                            {{ provider_meta.label }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label for="coupon_code">Discount coupon</label>
+                <input id="coupon_code" type="text" name="coupon_code" placeholder="Enter coupon code (e.g. WELCOME10)" value="{{ coupon_code }}">
+
+                <button type="submit">Apply Coupon</button>
+            </form>
+
+            <div class="checkout-summary">
+                <p><strong>Plan price:</strong> ${{ '%.2f'|format(base_cents / 100) }}</p>
+                <p><strong>Discount:</strong> -${{ '%.2f'|format(discount_cents / 100) }}</p>
+                <p class="summary-total"><strong>Total payable:</strong> ${{ '%.2f'|format(final_cents / 100) }}</p>
+                {% if applied_coupon %}
+                    <p class="coupon-applied">Coupon applied: {{ applied_coupon }}</p>
+                {% endif %}
+            </div>
+
+            <form action="{{ url_for('checkout') }}" method="POST">
+                <input type="hidden" name="action" value="pay_now">
+                <input type="hidden" name="plan" value="{{ plan_key }}">
+                <input type="hidden" name="payment_provider" value="{{ selected_provider }}">
+                <input type="hidden" name="coupon_code" value="{{ coupon_code }}">
+                <button type="submit">Pay Now</button>
+            </form>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="{{ url_for('checkout', plan=plan_key) }}">Checkout</a>
+            <a href="{{ url_for('security') }}">Security</a>
+            <a href="{{ url_for('terms') }}">Terms</a>
+            <a href="{{ url_for('contact') }}">Support</a>
+        </div>
+    </footer>
+</body>
+</html>

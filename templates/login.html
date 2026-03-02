@@ -12,16 +12,19 @@
     <main class="auth-wrap">
         <section class="auth-container panel">
             <p class="eyebrow">Welcome Back</p>
-            <h2>Log in with username, email, or mobile</h2>
+            <h2>Log in with Gmail, GitHub, username, email, or mobile</h2>
             {% if error %}
                 <p class="error-message">{{ error }}</p>
             {% endif %}
 
             <div class="oauth-row">
-                <a class="oauth-btn" href="{{ url_for('auth0_login') }}">Continue with Auth0</a>
+                <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
+                <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
+                <a class="oauth-btn oauth-btn-wide" href="{{ url_for('auth0_login') }}">Continue with Auth0</a>
             </div>
 
             <form class="auth-form" action="{{ url_for('login') }}" method="POST">
+                <input type="hidden" name="next" value="{{ next_url or '' }}">
                 <input type="text" name="identifier" placeholder="Username / Email / Mobile" required>
                 <input type="password" name="password" placeholder="Password" required>
                 <button type="submit">Login</button>
@@ -37,11 +40,11 @@
 
     <footer class="site-footer">
         <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>Login</p>
-            <p>Security</p>
-            <p>Terms</p>
-            <p>Contact</p>
+            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('security') }}">Security</a>
+            <a href="{{ url_for('terms') }}">Terms</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
         </div>
     </footer>
 </body>

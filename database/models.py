@@ -9,6 +9,10 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=True)
     mobile = db.Column(db.String(20), unique=True, nullable=True)
     auth0_sub = db.Column(db.String(255), unique=True, nullable=True)
+    oauth_provider = db.Column(db.String(50), nullable=True)
+    oauth_sub = db.Column(db.String(255), nullable=True)
+    plan = db.Column(db.String(30), nullable=False, default="starter")
+    last_payment_provider = db.Column(db.String(30), nullable=True)
     password = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     # Relationship to notes
@@ -19,4 +23,15 @@ class Notes(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)  # Original Input
     result = db.Column(db.Text, nullable=False)   # AI Generated Notes
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Lead(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(20), nullable=True)
+    company = db.Column(db.String(120), nullable=True)
+    message = db.Column(db.Text, nullable=False)
+    source = db.Column(db.String(60), nullable=False, default="website")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
