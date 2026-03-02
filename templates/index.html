@@ -8,22 +8,12 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        .brand {
-            display: flex;
-            align-items: center;
-        }
-        .brand img {
-            height: 40px; /* Adjust height as needed */
-            margin-right: 15px; /* Space between logo and text */
-        }
-    </style>
 </head>
 <body class="app-shell">
     <div class="bg-orb orb-a"></div>
     <div class="bg-orb orb-b"></div>
     <nav class="topbar">
-        <h1 class="brand">
+        <h1 class="brand brand-logo">
             <img src="{{ url_for('static', filename='logo.png') }}" alt="Corneal AI Logo">
             Corneal AI 
         </h1>
@@ -95,5 +85,6 @@
             <a href="{{ url_for('terms') }}">Terms</a>
         </div>
     </footer>
+    <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
 </body>
 </html>
