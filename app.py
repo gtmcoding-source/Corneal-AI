@@ -1,4 +1,5 @@
 from functools import wraps
+from datetime import datetime, date
 import re
 from urllib.parse import urlencode, quote_plus
 
@@ -8,7 +9,7 @@ from sqlalchemy import inspect, or_, text
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
 from database.models import db, User, Notes, Lead
-from utils.ai_handler import generate_notes
+from utils.ai_handler import generate_notes, transform_notes, TRANSFORM_ACTIONS, generate_study_plan
 from utils.helpers import generate_pdf
 from utils.source_ingestion import build_source_bundle
 
@@ -105,6 +106,12 @@ MODE_CONFIG = {
     }
 }
 
+ALIGNMENT_MODES = {
+    "ncert": "NCERT Focused",
+    "board": "Board Exam Focused",
+    "jee": "JEE Level",
+}
+
 PLAN_CONFIG = {
     "starter": {"name": "Starter", "price_cents": 0},
     "pro": {"name": "Pro", "price_cents": 900},
@@ -123,6 +130,8 @@ COUPON_CONFIG = {
     "TEAM20": {"type": "percent", "value": 20, "description": "20% off for team plans"},
     "SAVE500": {"type": "fixed", "value": 500, "description": "$5.00 off paid plans"},
 }
+
+STARTER_DAILY_NOTE_LIMIT = 3
 
 def normalize_mobile(value):
     return "".join(char for char in value if char.isdigit())
@@ -180,10 +189,26 @@ def _resolve_mode(raw_mode):
     mode = (raw_mode or "").strip().lower()
     return mode if mode in MODE_CONFIG else "text"
 
+def _resolve_alignment_mode(raw_mode):
+    mode = (raw_mode or "").strip().lower()
+    return mode if mode in ALIGNMENT_MODES else "ncert"
+
 
 def _resolve_plan(raw_plan):
     plan_key = (raw_plan or "").strip().lower()
     return plan_key if plan_key in PLAN_CONFIG else "starter"
+
+
+def _is_premium_plan(plan_key):
+    return plan_key in {"pro", "team", "institution"}
+
+
+def _daily_note_count(user_id):
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    return Notes.query.filter(
+        Notes.user_id == user_id,
+        Notes.created_at >= today_start,
+    ).count()
 
 
 def _coupon_discount(plan_key, coupon_code, base_cents):
@@ -208,14 +233,41 @@ def _coupon_discount(plan_key, coupon_code, base_cents):
 
 def _render_generator(mode, error=None):
     active_mode = _resolve_mode(mode)
+    user_plan = "starter"
+    is_premium_user = False
+    if "user_id" in session:
+        user = User.query.get(session["user_id"])
+        if user:
+            user_plan = user.plan or "starter"
+            is_premium_user = _is_premium_plan(user_plan)
     return render_template(
         "index.html",
         active_mode=active_mode,
         mode_title=MODE_CONFIG[active_mode]["title"],
         mode_subtitle=MODE_CONFIG[active_mode]["subtitle"],
         mode_tip=MODE_CONFIG[active_mode]["tip"],
-        error=error
+        error=error,
+        alignment_modes=ALIGNMENT_MODES,
+        user_plan=user_plan,
+        is_premium_user=is_premium_user,
     )
+
+
+def _exam_actions_for_view():
+    return {
+        "two_mark": TRANSFORM_ACTIONS["two_mark"]["label"],
+        "five_mark": TRANSFORM_ACTIONS["five_mark"]["label"],
+        "important_questions": TRANSFORM_ACTIONS["important_questions"]["label"],
+        "mcq_10": TRANSFORM_ACTIONS["mcq_10"]["label"],
+        "revise_60": TRANSFORM_ACTIONS["revise_60"]["label"],
+    }
+
+def _memory_actions_for_view():
+    return {
+        "flashcards": TRANSFORM_ACTIONS["flashcards"]["label"],
+        "mcq_test": TRANSFORM_ACTIONS["mcq_test"]["label"],
+        "rapid_revision": TRANSFORM_ACTIONS["rapid_revision"]["label"],
+    }
 
 
 @app.after_request
@@ -630,7 +682,11 @@ def checkout():
 @app.route("/generate", methods=["POST"])
 @login_required
 def generate():
+    user = User.query.get_or_404(session["user_id"])
+    user_plan = user.plan or "starter"
     mode = _resolve_mode(request.form.get("mode", "text"))
+    alignment_mode = _resolve_alignment_mode(request.form.get("alignment_mode", "ncert"))
+    source_backed = request.form.get("source_backed") == "on"
     content = request.form.get("content", "").strip()
     urls_blob = request.form.get("source_urls", "").strip()
     source_urls = [line.strip() for line in urls_blob.splitlines() if line.strip()]
@@ -650,12 +706,26 @@ def generate():
     if mode in {"youtube", "webpage"} and not source_urls:
         return _render_generator(mode, error="Paste at least one URL for this summarization mode."), 400
 
+    if user_plan == "starter" and _daily_note_count(user.id) >= STARTER_DAILY_NOTE_LIMIT:
+        return _render_generator(
+            mode,
+            error=(
+                f"Starter plan allows {STARTER_DAILY_NOTE_LIMIT} note generations per day. "
+                "Upgrade to Pro for higher limits and exam tools."
+            ),
+        ), 402
+
     source_text, source_labels, source_errors = build_source_bundle(content, source_urls, source_files)
     if not source_text:
         return _render_generator(mode, error="Add at least one valid source to generate notes."), 400
 
     # Call AI Helper
-    ai_response = generate_notes(source_text, mode=mode)
+    ai_response = generate_notes(
+        source_text,
+        mode=mode,
+        alignment_mode=alignment_mode,
+        source_backed=source_backed,
+    )
 
     if source_errors:
         ai_response = (
@@ -674,7 +744,141 @@ def generate():
     db.session.add(new_note)
     db.session.commit()
 
-    return render_template("result.html", notes=ai_response, note_id=new_note.id)
+    return render_template(
+        "result.html",
+        notes=ai_response,
+        note_id=new_note.id,
+        exam_actions=_exam_actions_for_view(),
+        memory_actions=_memory_actions_for_view(),
+        is_premium_user=_is_premium_plan(user_plan),
+        upgrade_plan="pro",
+    )
+
+
+@app.route("/notes/<int:note_id>/transform", methods=["POST"])
+@login_required
+def transform_note(note_id):
+    user = User.query.get_or_404(session["user_id"])
+    user_plan = user.plan or "starter"
+    if not _is_premium_plan(user_plan):
+        source_note = Notes.query.filter_by(id=note_id, user_id=session["user_id"]).first_or_404()
+        return render_template(
+            "result.html",
+            notes=source_note.result,
+            note_id=source_note.id,
+            exam_actions=_exam_actions_for_view(),
+            memory_actions=_memory_actions_for_view(),
+            is_premium_user=False,
+            upgrade_plan="pro",
+            action_error="Exam Mode and 60-second revision are available on Pro and above.",
+        ), 402
+
+    source_note = Notes.query.filter_by(id=note_id, user_id=session["user_id"]).first_or_404()
+    action = (request.form.get("action") or "").strip().lower()
+
+    if action not in TRANSFORM_ACTIONS:
+        return render_template(
+            "result.html",
+            notes=source_note.result,
+            note_id=source_note.id,
+            exam_actions=_exam_actions_for_view(),
+            memory_actions=_memory_actions_for_view(),
+            is_premium_user=True,
+            upgrade_plan="pro",
+            action_error="Unsupported action requested.",
+        ), 400
+
+    transformed_result = transform_notes(source_note.result, action)
+
+    generated_note = Notes(
+        user_id=session["user_id"],
+        content=source_note.content,
+        result=transformed_result,
+    )
+    db.session.add(generated_note)
+    db.session.commit()
+
+    return render_template(
+        "result.html",
+        notes=transformed_result,
+        note_id=generated_note.id,
+        exam_actions=_exam_actions_for_view(),
+        memory_actions=_memory_actions_for_view(),
+        is_premium_user=True,
+        upgrade_plan="pro",
+        action_success=f"Generated: {TRANSFORM_ACTIONS[action]['label']}",
+    )
+
+
+@app.route("/study-planner", methods=["POST"])
+@login_required
+def study_planner():
+    user = User.query.get_or_404(session["user_id"])
+    user_plan = user.plan or "starter"
+
+    subject = (request.form.get("subject") or "").strip()
+    difficulty = (request.form.get("difficulty") or "").strip().lower()
+    exam_date_raw = (request.form.get("exam_date") or "").strip()
+    available_hours_raw = (request.form.get("available_hours") or "").strip()
+
+    allowed_difficulty = {"easy", "medium", "hard"}
+    if difficulty not in allowed_difficulty:
+        return _render_generator("text", error="Choose subject difficulty: Easy, Medium, or Hard."), 400
+
+    if not subject:
+        return _render_generator("text", error="Enter a subject for study planner."), 400
+
+    try:
+        parsed_exam_date = datetime.strptime(exam_date_raw, "%Y-%m-%d").date()
+    except ValueError:
+        return _render_generator("text", error="Enter a valid exam date."), 400
+
+    if parsed_exam_date <= date.today():
+        return _render_generator("text", error="Exam date must be in the future."), 400
+
+    try:
+        available_hours = float(available_hours_raw)
+    except ValueError:
+        return _render_generator("text", error="Enter valid available study hours per day."), 400
+
+    if available_hours <= 0 or available_hours > 16:
+        return _render_generator("text", error="Available study hours must be between 0.5 and 16."), 400
+
+    if user_plan == "starter" and _daily_note_count(user.id) >= STARTER_DAILY_NOTE_LIMIT:
+        return _render_generator(
+            "text",
+            error=(
+                f"Starter plan allows {STARTER_DAILY_NOTE_LIMIT} AI generations per day. "
+                "Upgrade to Pro for extended planner usage."
+            ),
+        ), 402
+
+    plan_output = generate_study_plan(
+        subject=subject,
+        exam_date=exam_date_raw,
+        difficulty=difficulty,
+        available_hours=available_hours,
+    )
+
+    planner_note = Notes(
+        user_id=session["user_id"],
+        content=f"Study Planner Input: {subject} | {exam_date_raw} | {difficulty} | {available_hours}",
+        result=plan_output,
+    )
+    db.session.add(planner_note)
+    db.session.commit()
+
+    return render_template(
+        "study_plan.html",
+        plan_markdown=plan_output,
+        note_id=planner_note.id,
+        subject=subject,
+        exam_date=exam_date_raw,
+        difficulty=difficulty.title(),
+        available_hours=available_hours,
+        is_premium_user=_is_premium_plan(user_plan),
+        upgrade_plan="pro",
+    )
 
 @app.route("/download/<int:note_id>")
 @login_required

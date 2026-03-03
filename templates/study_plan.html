@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Plan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <nav class="topbar">
+        <h1 class="brand">Study Planner</h1>
+        <div class="top-actions">
+            <a class="link-pill" href="{{ url_for('home') }}">Back to App</a>
+            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=note_id) }}">Download PDF</a>
+        </div>
+    </nav>
+    <main class="container page-grid result-page">
+        <aside class="ad-rail ad-left" aria-label="Left advertisement slot">
+            <div class="ad-slot">Sponsored Placement</div>
+        </aside>
+        <section class="panel notes-display">
+            <section class="planner-summary">
+                <h2>{{ subject }} Study Plan</h2>
+                <p>Exam date: <strong>{{ exam_date }}</strong></p>
+                <p>Difficulty: <strong>{{ difficulty }}</strong></p>
+                <p>Daily hours: <strong>{{ available_hours }}</strong></p>
+                {% if not is_premium_user %}
+                    <p class="upgrade-text">
+                        Need more planner usage and memory tools?
+                        <a href="{{ url_for('checkout', plan=upgrade_plan | default('pro')) }}">Upgrade to Pro</a>
+                    </p>
+                {% endif %}
+            </section>
+            <hr class="notes-divider">
+            {{ plan_markdown | safe }}
+        </section>
+        <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
+            <div class="ad-slot">Sponsored Placement</div>
+        </aside>
+    </main>
+</body>
+</html>

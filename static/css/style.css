@@ -609,6 +609,10 @@ p {
     animation: fadeLift 0.5s ease both;
 }
 
+.planner-panel {
+    margin-top: 1rem;
+}
+
 .panel-editor h2 {
     font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.35rem);
     margin-bottom: 0.6rem;
@@ -660,6 +664,34 @@ p {
     margin-bottom: 0.95rem;
     font-weight: 600;
     font-size: 0.92rem;
+}
+
+.compact-tip {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.premium-controls {
+    border: 1px solid rgba(11, 87, 208, 0.22);
+    background: rgba(219, 234, 254, 0.35);
+    border-radius: 14px;
+    padding: 0.85rem;
+    display: grid;
+    gap: 0.7rem;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.checkbox-row input[type="checkbox"] {
+    width: auto;
+    margin-top: 0.1rem;
 }
 
 .note-form,
@@ -795,6 +827,112 @@ button:hover {
     padding: clamp(1.2rem, 2.5vw, 2.6rem);
     line-height: 1.65;
     animation: fadeLift 0.6s ease both;
+}
+
+.exam-toolbar {
+    border: 1px solid rgba(11, 87, 208, 0.22);
+    border-radius: 16px;
+    background: rgba(219, 234, 254, 0.35);
+    padding: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.exam-toolbar h2 {
+    margin: 0 0 0.22rem;
+    font-size: 1.25rem;
+    border: none;
+    padding: 0;
+}
+
+.exam-toolbar p {
+    margin: 0 0 0.65rem;
+    color: var(--muted);
+}
+
+.exam-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.exam-actions-grid button {
+    width: 100%;
+    padding: 0.72rem 0.82rem;
+    box-shadow: 0 8px 16px rgba(11, 87, 208, 0.24);
+}
+
+.exam-actions-grid .revise-button {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #0e7490, #0284c7);
+    box-shadow: 0 8px 16px rgba(14, 116, 144, 0.28);
+}
+
+.exam-actions-grid button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.locked-grid {
+    margin-bottom: 0.5rem;
+}
+
+.memory-grid .revise-button {
+    grid-column: 1 / -1;
+}
+
+.upgrade-text {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--primary-2);
+    font-weight: 700;
+}
+
+.upgrade-text a {
+    color: var(--primary);
+}
+
+.source-info-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.8rem;
+}
+
+.source-info-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    padding: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.source-policy {
+    display: none;
+    border: 1px solid rgba(16, 33, 39, 0.14);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--muted);
+    padding: 0.5rem 0.6rem;
+    font-size: 0.84rem;
+}
+
+.source-policy.show {
+    display: block;
+}
+
+.notes-divider {
+    border: none;
+    border-top: 1px solid rgba(16, 33, 39, 0.15);
+    margin: 1rem 0 1.1rem;
+}
+
+.planner-summary p {
+    margin: 0 0 0.3rem;
+    color: var(--muted);
 }
 
 .notes-display h2,
@@ -1082,6 +1220,10 @@ body.motion-enabled [data-reveal].is-visible {
 
     textarea {
         min-height: 300px;
+    }
+
+    .exam-actions-grid {
+        grid-template-columns: 1fr;
     }
 }
 

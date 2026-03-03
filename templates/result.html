@@ -25,6 +25,68 @@
             <div class="ad-slot">Sponsored Placement</div>
         </aside>
         <section class="panel notes-display">
+            {% set actions = exam_actions | default({}) %}
+            {% set memory = memory_actions | default({}) %}
+            <section class="exam-toolbar">
+                <h2>Exam Mode</h2>
+                <p>Generate exam-focused outputs from these notes.</p>
+                {% if action_error %}
+                    <p class="error-message">{{ action_error }}</p>
+                {% endif %}
+                {% if action_success %}
+                    <p class="success-message">{{ action_success }}</p>
+                {% endif %}
+                {% if is_premium_user %}
+                    <form class="exam-actions-grid" action="{{ url_for('transform_note', note_id=note_id) }}" method="POST">
+                        <button type="submit" name="action" value="two_mark">{{ actions.get('two_mark', 'Convert to 2-mark answers') }}</button>
+                        <button type="submit" name="action" value="five_mark">{{ actions.get('five_mark', 'Convert to 5-mark answers') }}</button>
+                        <button type="submit" name="action" value="important_questions">{{ actions.get('important_questions', 'Generate Important Questions') }}</button>
+                        <button type="submit" name="action" value="mcq_10">{{ actions.get('mcq_10', 'Create 10 MCQs') }}</button>
+                        <button class="revise-button" type="submit" name="action" value="revise_60">{{ actions.get('revise_60', 'Revise in 60 seconds') }}</button>
+                    </form>
+                {% else %}
+                    <div class="exam-actions-grid locked-grid">
+                        <button type="button" disabled>Convert to 2-mark answers</button>
+                        <button type="button" disabled>Convert to 5-mark answers</button>
+                        <button type="button" disabled>Generate Important Questions</button>
+                        <button type="button" disabled>Create 10 MCQs</button>
+                        <button class="revise-button" type="button" disabled>Revise in 60 seconds</button>
+                    </div>
+                    <p class="upgrade-text">
+                        Unlock Exam Mode and rapid revision with Pro plan.
+                        <a href="{{ url_for('checkout', plan=upgrade_plan | default('pro')) }}">Upgrade to Pro</a>
+                    </p>
+                {% endif %}
+            </section>
+            <section class="exam-toolbar">
+                <h2>Memory Booster Mode</h2>
+                <p>Keep concepts active with testing and recall flows.</p>
+                {% if is_premium_user %}
+                    <form class="exam-actions-grid memory-grid" action="{{ url_for('transform_note', note_id=note_id) }}" method="POST">
+                        <button type="submit" name="action" value="flashcards">{{ memory.get('flashcards', 'Turn into Flashcards') }}</button>
+                        <button type="submit" name="action" value="mcq_test">{{ memory.get('mcq_test', 'Generate MCQ test') }}</button>
+                        <button class="revise-button" type="submit" name="action" value="rapid_revision">{{ memory.get('rapid_revision', 'Rapid revision mode') }}</button>
+                    </form>
+                {% else %}
+                    <div class="exam-actions-grid locked-grid memory-grid">
+                        <button type="button" disabled>Turn into Flashcards</button>
+                        <button type="button" disabled>Generate MCQ Test</button>
+                        <button class="revise-button" type="button" disabled>Rapid revision mode</button>
+                    </div>
+                    <p class="upgrade-text">
+                        Memory Booster is available on Pro plan.
+                        <a href="{{ url_for('checkout', plan=upgrade_plan | default('pro')) }}">Upgrade to Pro</a>
+                    </p>
+                {% endif %}
+            </section>
+            <div class="source-info-wrap">
+                <button class="source-info-icon" type="button" onclick="document.getElementById('source-policy').classList.toggle('show')">i</button>
+                <div id="source-policy" class="source-policy">
+                    Source-backed notes include reference textbook, concept origin, and suggested chapter.
+                    If certainty is low, notes are labeled as: "Concept based on NCERT framework."
+                </div>
+            </div>
+            <hr class="notes-divider">
             {{ notes | safe }}
         </section>
         <aside class="ad-rail ad-right" aria-label="Right advertisement slot">

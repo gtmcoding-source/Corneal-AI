@@ -49,6 +49,21 @@
         {% endif %}
             <form class="note-form" action="{{ url_for('generate') }}" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="mode" value="{{ active_mode }}">
+                <div class="premium-controls">
+                    <label for="alignment_mode">NCERT Alignment Mode</label>
+                    <select id="alignment_mode" name="alignment_mode">
+                        {% for mode_key, mode_label in alignment_modes.items() %}
+                            <option value="{{ mode_key }}">{{ mode_label }}</option>
+                        {% endfor %}
+                    </select>
+                    <label class="checkbox-row" for="source_backed">
+                        <input id="source_backed" type="checkbox" name="source_backed">
+                        <span>Source-backed notes (reference textbook + concept origin + suggested chapter)</span>
+                    </label>
+                    <p class="mode-tip compact-tip">
+                        Source policy: never fake references. If uncertain, output uses "Concept based on NCERT framework."
+                    </p>
+                </div>
 
             {% if active_mode in ['youtube', 'webpage', 'multi'] %}
                 <label for="source_urls">Source URLs (one per line)</label>
@@ -64,7 +79,33 @@
                 <label for="content">Additional text input</label>
                 <textarea id="content" name="content" rows="15" placeholder="Paste lecture notes or text here..."></textarea>
             {% endif %}
+                {% if not is_premium_user %}
+                    <p class="mode-tip compact-tip">Starter plan includes basic generation. Exam Mode actions and 60-second revision are Pro features.</p>
+                {% endif %}
                 <button type="submit">Generate Notes</button>
+            </form>
+        </section>
+        <section class="panel panel-editor planner-panel">
+            <h2>Study Planner</h2>
+            <p class="subtitle">Create a day-wise plan with revision schedule based on your exam date and difficulty level.</p>
+            <form class="note-form" action="{{ url_for('study_planner') }}" method="POST">
+                <label for="subject">Subject</label>
+                <input id="subject" type="text" name="subject" placeholder="e.g., Physics" required>
+
+                <label for="exam_date">Exam date</label>
+                <input id="exam_date" type="date" name="exam_date" required>
+
+                <label for="difficulty">Subject difficulty</label>
+                <select id="difficulty" name="difficulty" required>
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+
+                <label for="available_hours">Available study hours/day</label>
+                <input id="available_hours" type="number" name="available_hours" min="0.5" max="16" step="0.5" value="2" required>
+
+                <button type="submit">Generate Study Plan</button>
             </form>
         </section>
         <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
