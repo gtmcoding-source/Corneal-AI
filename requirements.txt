@@ -15,3 +15,4 @@ flask_migrate
 datetime
 Markdown
 bleach
+youtube-transcript-api

@@ -23,6 +23,13 @@ client = OpenAI(
 )
 
 MAX_SOURCE_CHARS = 120_000
+DEFAULT_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 
 def _normalize_whitespace(text):
@@ -35,16 +42,38 @@ def _truncate(text, limit=MAX_SOURCE_CHARS):
     return text[:limit] + "\n\n[Truncated for length]"
 
 
-def _extract_website_text(url):
-    response = requests.get(url, timeout=25)
+def _fetch_text_url(url, timeout=25):
+    response = requests.get(url, timeout=timeout, headers=DEFAULT_HEADERS)
     response.raise_for_status()
-    soup = BeautifulSoup(response.text, "html.parser")
+    return response.text
+
+
+def _normalize_url_input(raw_url):
+    url = (raw_url or "").strip()
+    if not url:
+        return ""
+    parsed = urlparse(url)
+    if not parsed.scheme:
+        url = f"https://{url}"
+    return url
+
+
+def _extract_website_text(url):
+    html = _fetch_text_url(url, timeout=25)
+    soup = BeautifulSoup(html, "html.parser")
 
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()
 
     text = soup.get_text(separator=" ")
-    return _truncate(_normalize_whitespace(text))
+    normalized = _truncate(_normalize_whitespace(text))
+    if len(normalized) >= 220:
+        return normalized
+
+    # Fallback for pages that block normal scraping.
+    proxy_url = f"https://r.jina.ai/http://{url.replace('https://', '').replace('http://', '')}"
+    proxy_text = _fetch_text_url(proxy_url, timeout=30)
+    return _truncate(_normalize_whitespace(proxy_text))
 
 
 def _extract_text_from_pdf_bytes(pdf_bytes):
@@ -56,29 +85,39 @@ def _extract_text_from_pdf_bytes(pdf_bytes):
 
 
 def _extract_pdf_text_from_url(url):
-    response = requests.get(url, timeout=30)
+    response = requests.get(url, timeout=30, headers=DEFAULT_HEADERS)
     response.raise_for_status()
     return _extract_text_from_pdf_bytes(response.content)
 
 
 def _youtube_video_id(url):
     parsed = urlparse(url)
-    if parsed.hostname in {"youtu.be"}:
+    host = (parsed.hostname or "").lower()
+    if host in {"youtu.be", "www.youtu.be"}:
         return parsed.path.strip("/")
-    if parsed.hostname and "youtube.com" in parsed.hostname:
+    if "youtube.com" in host and parsed.path.startswith("/shorts/"):
+        return parsed.path.split("/shorts/")[-1].split("/")[0]
+    if "youtube.com" in host:
         return parse_qs(parsed.query).get("v", [None])[0]
     return None
 
 
 def _extract_youtube_transcript(url):
-    if YouTubeTranscriptApi is None:
-        raise RuntimeError("youtube-transcript-api is not installed.")
     video_id = _youtube_video_id(url)
     if not video_id:
         raise ValueError("Invalid YouTube URL.")
-    transcript = YouTubeTranscriptApi.get_transcript(video_id)
-    text = " ".join(item.get("text", "") for item in transcript)
-    return _truncate(_normalize_whitespace(text))
+    if YouTubeTranscriptApi is not None:
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            text = " ".join(item.get("text", "") for item in transcript)
+            cleaned = _truncate(_normalize_whitespace(text))
+            if cleaned:
+                return cleaned
+        except Exception:
+            pass
+
+    # Fallback path when transcript API is unavailable/blocked.
+    return _extract_website_text(url)
 
 
 def _extract_google_doc_or_slide(url):
@@ -91,13 +130,13 @@ def _extract_google_doc_or_slide(url):
     file_id = match.group(1)
     if "docs.google.com/document/" in url:
         export_url = f"https://docs.google.com/document/d/{file_id}/export?format=txt"
-        response = requests.get(export_url, timeout=25)
+        response = requests.get(export_url, timeout=25, headers=DEFAULT_HEADERS)
         response.raise_for_status()
         return _truncate(_normalize_whitespace(response.text))
 
     if "docs.google.com/presentation/" in url:
         export_url = f"https://docs.google.com/presentation/d/{file_id}/export/pdf"
-        response = requests.get(export_url, timeout=30)
+        response = requests.get(export_url, timeout=30, headers=DEFAULT_HEADERS)
         response.raise_for_status()
         return _extract_text_from_pdf_bytes(response.content)
 
@@ -156,7 +195,7 @@ def build_source_bundle(direct_text, source_urls, source_files):
         source_labels.append("Manual Input")
 
     for raw_url in source_urls:
-        url = (raw_url or "").strip()
+        url = _normalize_url_input(raw_url)
         if not url:
             continue
         try:

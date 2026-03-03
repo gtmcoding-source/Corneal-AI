@@ -744,7 +744,7 @@ def generate():
     source_backed = request.form.get("source_backed") == "on"
     content = request.form.get("content", "").strip()
     urls_blob = request.form.get("source_urls", "").strip()
-    source_urls = [line.strip() for line in urls_blob.splitlines() if line.strip()]
+    source_urls = [line.strip() for line in re.split(r"[\r\n,]+", urls_blob) if line.strip()]
     source_files = request.files.getlist("source_files")
 
     if mode == "text" and not content:
@@ -772,6 +772,12 @@ def generate():
 
     source_text, source_labels, source_errors = build_source_bundle(content, source_urls, source_files)
     if not source_text:
+        if source_errors:
+            readable_errors = " | ".join(source_errors[:2])
+            return _render_generator(
+                mode,
+                error=f"Could not read provided source(s). {readable_errors}",
+            ), 400
         return _render_generator(mode, error="Add at least one valid source to generate notes."), 400
 
     # Call AI Helper
