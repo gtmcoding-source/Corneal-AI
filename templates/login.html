@@ -17,11 +17,21 @@
                 <p class="error-message">{{ error }}</p>
             {% endif %}
 
-            <div class="oauth-row">
-                <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
-                <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
-                <a class="oauth-btn oauth-btn-wide" href="{{ url_for('auth0_login') }}">Continue with Auth0</a>
-            </div>
+            {% if google_oauth_enabled or github_oauth_enabled or auth0_oauth_enabled %}
+                <div class="oauth-row">
+                    {% if google_oauth_enabled %}
+                        <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
+                    {% endif %}
+                    {% if github_oauth_enabled %}
+                        <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
+                    {% endif %}
+                    {% if auth0_oauth_enabled %}
+                        <a class="oauth-btn oauth-btn-wide" href="{{ url_for('auth0_login') }}">Continue with Auth0</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="subtitle">Social login is not configured yet. Use username/email/mobile login below.</p>
+            {% endif %}
 
             <form class="auth-form" action="{{ url_for('login') }}" method="POST">
                 <input type="hidden" name="next" value="{{ next_url or '' }}">

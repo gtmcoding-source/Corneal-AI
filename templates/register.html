@@ -16,10 +16,18 @@
             {% if error %}
                 <p class="error-message">{{ error }}</p>
             {% endif %}
-            <div class="oauth-row">
-                <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
-                <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
-            </div>
+            {% if google_oauth_enabled or github_oauth_enabled %}
+                <div class="oauth-row">
+                    {% if google_oauth_enabled %}
+                        <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
+                    {% endif %}
+                    {% if github_oauth_enabled %}
+                        <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="subtitle">Social signup is not configured yet. Register with email/mobile below.</p>
+            {% endif %}
             <form class="auth-form" action="{{ url_for('register') }}" method="POST">
                 <input type="hidden" name="plan" value="{{ selected_plan or 'starter' }}">
                 <input type="text" name="username" placeholder="Username (optional)">

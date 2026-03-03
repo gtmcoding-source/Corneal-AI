@@ -48,7 +48,11 @@
                 <article class="panel dashboard-card premium-card">
                     <h3>Continue Where You Left Off</h3>
                     {% if latest_note %}
-                        <p class="subtitle">Last generated note: {{ latest_note.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+                        {% if latest_note.created_at and latest_note.created_at.strftime is defined %}
+                            <p class="subtitle">Last generated note: {{ latest_note.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+                        {% else %}
+                            <p class="subtitle">Last generated note is available.</p>
+                        {% endif %}
                         <div class="quick-actions">
                             <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=latest_note.id) }}">Download Last PDF</a>
                             <a class="link-pill" href="{{ url_for('home') }}">Generate Next Note</a>

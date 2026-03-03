@@ -74,6 +74,15 @@ if Config.GITHUB_CLIENT_ID and Config.GITHUB_CLIENT_SECRET:
         client_kwargs={"scope": "user:email"},
     )
 
+
+@app.context_processor
+def inject_oauth_provider_flags():
+    return {
+        "google_oauth_enabled": bool(getattr(oauth, "google", None)),
+        "github_oauth_enabled": bool(getattr(oauth, "github", None)),
+        "auth0_oauth_enabled": bool(getattr(oauth, "auth0", None)),
+    }
+
 # ==============================
 # Helpers
 # ==============================
