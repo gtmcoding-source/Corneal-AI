@@ -1,0 +1,22 @@
+<aside class="app-sidebar">
+    <div class="sidebar-head">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Corneal AI">
+        <div>
+            <p class="sidebar-brand">Corneal AI</p>
+            <p class="sidebar-tag">Exam Assistant</p>
+        </div>
+    </div>
+    <nav class="sidebar-nav" aria-label="Main navigation">
+        <a class="sidebar-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a class="sidebar-link" href="{{ url_for('home') }}">Generate Notes</a>
+        <a class="sidebar-link" href="{{ url_for('home') }}#exam-mode">Exam Mode</a>
+        <a class="sidebar-link" href="{{ url_for('home') }}#revision-mode">Revision</a>
+        <a class="sidebar-link" href="{{ url_for('home') }}#study-planner">Planner</a>
+        <a class="sidebar-link" href="{{ url_for('dashboard') }}#progress">Progress</a>
+        <a class="sidebar-link" href="{{ url_for('pricing') }}">Pricing</a>
+    </nav>
+    <div class="sidebar-footer">
+        <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
+        <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</aside>

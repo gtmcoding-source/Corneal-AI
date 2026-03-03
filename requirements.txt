@@ -13,3 +13,5 @@ requests
 flask_sqlalchemy
 flask_migrate
 datetime
+Markdown
+bleach

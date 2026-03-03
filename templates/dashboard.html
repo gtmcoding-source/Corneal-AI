@@ -3,75 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - AI Notes Maker</title>
+    <title>Dashboard - Corneal AI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="app-shell">
-    <div class="bg-orb orb-a"></div>
-    <div class="bg-orb orb-b"></div>
-    <nav class="topbar">
-        <h1 class="brand">Dashboard</h1>
-        <div class="top-actions">
-            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
-            <a class="link-pill" href="{{ url_for('home') }}">Generate</a>
-            <a class="link-pill" href="{{ url_for('checkout', plan='pro') }}">Checkout</a>
-            <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
-            <a class="link-pill" href="{{ url_for('security') }}">Security</a>
-            <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
-            <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
-        </div>
-    </nav>
-    <main class="container">
-        <section class="panel landing-card">
-            <h2>Your Workspace Snapshot</h2>
-            <p class="subtitle">Use this dashboard as your central command page.</p>
-            <div class="metrics-strip">
-                <div class="metric-item">
-                    <p class="metric-value">{{ note_count }}</p>
-                    <p class="metric-label">Notes generated</p>
+    <div class="workspace-shell">
+        {% include "partials/app_sidebar.html" %}
+        <main class="workspace-main">
+            <header class="workspace-topbar">
+                <div>
+                    <p class="eyebrow">Class 11-12 CBSE</p>
+                    <h1>Student Dashboard</h1>
+                    <p class="subtitle">Continue focused preparation with exam-mode notes and revision plans.</p>
                 </div>
-                <div class="metric-item">
-                    <p class="metric-value">PDF</p>
-                    <p class="metric-label">Download support</p>
+                <div class="quick-actions">
+                    <a class="link-pill link-pill-primary" href="{{ url_for('home') }}">Generate Notes</a>
+                    <a class="link-pill" href="{{ url_for('pricing') }}">View Pricing</a>
                 </div>
-                <div class="metric-item">
-                    <p class="metric-value">Multi</p>
-                    <p class="metric-label">Source summarization</p>
-                </div>
-                <div class="metric-item">
-                    <p class="metric-value">AI</p>
-                    <p class="metric-label">Connection mapping</p>
-                </div>
-            </div>
-        </section>
+            </header>
 
-        <section class="panel landing-card dashboard-grid">
-            <article class="dashboard-card">
-                <h3>Privacy Dashboard</h3>
-                <p class="subtitle">Review what gets stored, what gets processed, and how to keep sensitive data safe.</p>
-                <a class="link-pill" href="{{ url_for('privacy') }}">Open Privacy</a>
-            </article>
-            <article class="dashboard-card">
-                <h3>Security Section</h3>
-                <p class="subtitle">Check authentication protection, account safety tips, and secure workflow guidance.</p>
-                <a class="link-pill" href="{{ url_for('security') }}">Open Security</a>
-            </article>
-            <article class="dashboard-card">
-                <h3>Billing and Plans</h3>
-                <p class="subtitle">Upgrade with Stripe, PayPal, or Razorpay and apply discount coupons at checkout.</p>
-                <a class="link-pill" href="{{ url_for('checkout', plan='pro') }}">Open Checkout</a>
-            </article>
-        </section>
-    </main>
+            <section class="dashboard-kpi-grid">
+                <article class="dashboard-kpi-card">
+                    <p class="kpi-label">Notes Generated</p>
+                    <p class="kpi-value">{{ note_count }}</p>
+                </article>
+                <article class="dashboard-kpi-card">
+                    <p class="kpi-label">Current Streak</p>
+                    <p class="kpi-value">{{ streak_count }} day{% if streak_count != 1 %}s{% endif %}</p>
+                </article>
+                <article class="dashboard-kpi-card" id="progress">
+                    <p class="kpi-label">Topics Progress</p>
+                    <p class="kpi-value">{{ progress_percent }}%</p>
+                    <div class="study-progress-track">
+                        <span class="study-progress-fill" style="width: {{ progress_percent }}%;"></span>
+                    </div>
+                </article>
+                <article class="dashboard-kpi-card motivational-card">
+                    <p class="kpi-label">Motivation</p>
+                    <p class="subtitle">Small daily wins become rank-level performance.</p>
+                </article>
+            </section>
 
-    <footer class="site-footer">
-        <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>Dashboard</p>
-            <p>Journey</p>
-            <p>Security</p>
-            <p>Contact</p>
-        </div>
-    </footer>
+            <section class="dashboard-main-grid">
+                <article class="panel dashboard-card premium-card">
+                    <h3>Continue Where You Left Off</h3>
+                    {% if latest_note %}
+                        <p class="subtitle">Last generated note: {{ latest_note.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+                        <div class="quick-actions">
+                            <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=latest_note.id) }}">Download Last PDF</a>
+                            <a class="link-pill" href="{{ url_for('home') }}">Generate Next Note</a>
+                        </div>
+                    {% else %}
+                        <p class="subtitle">No notes yet. Start with your first chapter and build momentum.</p>
+                        <a class="link-pill link-pill-primary" href="{{ url_for('home') }}">Start Now</a>
+                    {% endif %}
+                </article>
+
+                <article class="panel dashboard-card">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions">
+                        <a class="link-pill" href="{{ url_for('home') }}#exam-mode">Open Exam Mode</a>
+                        <a class="link-pill" href="{{ url_for('home') }}#revision-mode">Open Revision</a>
+                        <a class="link-pill" href="{{ url_for('home') }}#study-planner">Open Planner</a>
+                        <a class="link-pill" href="{{ url_for('checkout', plan='pro') }}">Upgrade to Pro</a>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
 </body>
 </html>

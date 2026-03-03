@@ -3,129 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corneal AI - Generate Study Notes</title>
-    
+    <title>Corneal AI - Study Workspace</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="app-shell">
-    <div class="bg-orb orb-a"></div>
-    <div class="bg-orb orb-b"></div>
-    <nav class="topbar">
-        <h1 class="brand brand-logo">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Corneal AI Logo">
-            Corneal AI 
-        </h1>
-        <div class="top-actions">
-            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
-            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
-            <a class="link-pill" href="{{ url_for('security') }}">Security</a>
-            <a class="link-pill" href="{{ url_for('profile') }}">Profile</a>
-            <a class="link-pill" href="{{ url_for('logout') }}">Logout</a>
-        </div>
-    </nav>
-    <main class="container page-grid editor-page">
-        <aside class="ad-rail ad-left" aria-label="Left advertisement slot">
-            <div class="ad-slot">Sponsored Placement</div>
-        </aside>
-        <section class="panel panel-editor">
-            <div class="mode-switcher">
-                <a class="mode-pill {% if active_mode == 'text' %}mode-pill-active{% endif %}" href="{{ url_for('home') }}">Summarize Text</a>
-                <a class="mode-pill {% if active_mode == 'pdf' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='pdf') }}">Summarize PDF</a>
-                <a class="mode-pill {% if active_mode == 'youtube' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='youtube') }}">Summarize YouTube Video</a>
-                <a class="mode-pill {% if active_mode == 'webpage' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='webpage') }}">Summarize Webpage</a>
-                <a class="mode-pill {% if active_mode == 'multi' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='multi') }}">Mixed Sources</a>
-            </div>
-
-            <h2>{{ mode_title }}</h2>
-            <p class="subtitle">{{ mode_subtitle }}</p>
-        {% if mode_tip %}
-            <p class="mode-tip">{{ mode_tip }}</p>
-        {% endif %}
-        {% if error %}
-            <p class="error-message">{{ error }}</p>
-        {% endif %}
-            <form class="note-form" action="{{ url_for('generate') }}" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="mode" value="{{ active_mode }}">
-                <div class="premium-controls">
-                    <label for="alignment_mode">NCERT Alignment Mode</label>
-                    <select id="alignment_mode" name="alignment_mode">
-                        {% for mode_key, mode_label in alignment_modes.items() %}
-                            <option value="{{ mode_key }}">{{ mode_label }}</option>
-                        {% endfor %}
-                    </select>
-                    <label class="checkbox-row" for="source_backed">
-                        <input id="source_backed" type="checkbox" name="source_backed">
-                        <span>Source-backed notes (reference textbook + concept origin + suggested chapter)</span>
-                    </label>
-                    <p class="mode-tip compact-tip">
-                        Source policy: never fake references. If uncertain, output uses "Concept based on NCERT framework."
-                    </p>
+    <div class="workspace-shell">
+        {% include "partials/app_sidebar.html" %}
+        <main class="workspace-main">
+            <header class="workspace-topbar">
+                <div>
+                    <p class="eyebrow">AI Notes Generator</p>
+                    <h1>{{ mode_title }}</h1>
+                    <p class="subtitle">{{ mode_subtitle }}</p>
                 </div>
+                <div class="quick-actions">
+                    <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    <a class="link-pill link-pill-primary" href="{{ url_for('pricing') }}">Pricing</a>
+                </div>
+            </header>
 
-            {% if active_mode in ['youtube', 'webpage', 'multi'] %}
-                <label for="source_urls">Source URLs (one per line)</label>
-                <textarea id="source_urls" name="source_urls" rows="4" placeholder="{% if active_mode == 'youtube' %}https://www.youtube.com/watch?v=...{% elif active_mode == 'webpage' %}https://example.com/article{% else %}https://example.com/article&#10;https://www.youtube.com/watch?v=...&#10;https://docs.google.com/document/d/...{% endif %}"></textarea>
-            {% endif %}
-
-            {% if active_mode in ['pdf', 'multi'] %}
-                <label for="source_files">{% if active_mode == 'pdf' %}Upload PDF files{% else %}Upload files (PDF, MP3, WAV, M4A, TXT, MD, CSV){% endif %}</label>
-                <input id="source_files" type="file" name="source_files" {% if active_mode == 'pdf' %}accept=".pdf"{% endif %} multiple>
-            {% endif %}
-
-            {% if active_mode in ['text', 'multi'] %}
-                <label for="content">Additional text input</label>
-                <textarea id="content" name="content" rows="15" placeholder="Paste lecture notes or text here..."></textarea>
-            {% endif %}
-                {% if not is_premium_user %}
-                    <p class="mode-tip compact-tip">Starter plan includes basic generation. Exam Mode actions and 60-second revision are Pro features.</p>
+            <section class="panel premium-card">
+                <div class="mode-switcher">
+                    <a class="mode-pill {% if active_mode == 'text' %}mode-pill-active{% endif %}" href="{{ url_for('home') }}">Text</a>
+                    <a class="mode-pill {% if active_mode == 'pdf' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='pdf') }}">PDF</a>
+                    <a class="mode-pill {% if active_mode == 'youtube' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='youtube') }}">YouTube</a>
+                    <a class="mode-pill {% if active_mode == 'webpage' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='webpage') }}">Webpage</a>
+                    <a class="mode-pill {% if active_mode == 'multi' %}mode-pill-active{% endif %}" href="{{ url_for('generator_page', mode='multi') }}">Mixed</a>
+                </div>
+                {% if mode_tip %}
+                    <p class="mode-tip">{{ mode_tip }}</p>
                 {% endif %}
-                <button type="submit">Generate Notes</button>
-            </form>
-        </section>
-        <section class="panel panel-editor planner-panel">
-            <h2>Study Planner</h2>
-            <p class="subtitle">Create a day-wise plan with revision schedule based on your exam date and difficulty level.</p>
-            <form class="note-form" action="{{ url_for('study_planner') }}" method="POST">
-                <label for="subject">Subject</label>
-                <input id="subject" type="text" name="subject" placeholder="e.g., Physics" required>
+                {% if error %}
+                    <p class="error-message">{{ error }}</p>
+                {% endif %}
+            </section>
 
-                <label for="exam_date">Exam date</label>
-                <input id="exam_date" type="date" name="exam_date" required>
+            <section class="panel panel-editor premium-card">
+                <form class="note-form" action="{{ url_for('generate') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="mode" value="{{ active_mode }}">
+                    <div class="premium-controls">
+                        <label for="alignment_mode">NCERT Alignment Mode</label>
+                        <select id="alignment_mode" name="alignment_mode">
+                            {% for mode_key, mode_label in alignment_modes.items() %}
+                                <option value="{{ mode_key }}">{{ mode_label }}</option>
+                            {% endfor %}
+                        </select>
+                        <label class="checkbox-row" for="source_backed">
+                            <input id="source_backed" type="checkbox" name="source_backed">
+                            <span>Source-backed notes (textbook, concept origin, chapter mapping)</span>
+                        </label>
+                    </div>
 
-                <label for="difficulty">Subject difficulty</label>
-                <select id="difficulty" name="difficulty" required>
-                    <option value="easy">Easy</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="hard">Hard</option>
-                </select>
+                    {% if active_mode in ['youtube', 'webpage', 'multi'] %}
+                        <label for="source_urls">Source URLs (one per line)</label>
+                        <textarea id="source_urls" name="source_urls" rows="4" placeholder="https://example.com/article&#10;https://www.youtube.com/watch?v=..."></textarea>
+                    {% endif %}
 
-                <label for="available_hours">Available study hours/day</label>
-                <input id="available_hours" type="number" name="available_hours" min="0.5" max="16" step="0.5" value="2" required>
+                    {% if active_mode in ['pdf', 'multi'] %}
+                        <label for="source_files">{% if active_mode == 'pdf' %}Upload PDF files{% else %}Upload files (PDF, MP3, WAV, M4A, TXT, MD, CSV){% endif %}</label>
+                        <input id="source_files" type="file" name="source_files" {% if active_mode == 'pdf' %}accept=".pdf"{% endif %} multiple>
+                    {% endif %}
 
-                <button type="submit">Generate Study Plan</button>
-            </form>
-        </section>
-        <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
-            <div class="ad-slot">Sponsored Placement</div>
-        </aside>
-    </main>
+                    {% if active_mode in ['text', 'multi'] %}
+                        <label for="content">Additional text input</label>
+                        <textarea id="content" name="content" rows="15" placeholder="Paste chapter notes, class transcript, or solved examples..."></textarea>
+                    {% endif %}
 
-    <section class="container bottom-ad-wrap" aria-label="Bottom advertisement slot">
-        <div class="bottom-ad-slot">Sponsored Placement</div>
-    </section>
+                    <button type="submit">Generate Premium Notes</button>
+                </form>
+            </section>
 
-    <footer class="site-footer">
-        <div class="site-footer-inner">
-            <a href="{{ url_for('landing') }}">AI Notes Maker</a>
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('profile') }}">Profile</a>
-            <a href="{{ url_for('privacy') }}">Privacy</a>
-            <a href="{{ url_for('terms') }}">Terms</a>
-        </div>
-    </footer>
+            <section class="dashboard-main-grid">
+                <article class="panel dashboard-card" id="exam-mode">
+                    <h3>Exam Mode</h3>
+                    <p class="subtitle">Convert generated notes into 2-mark, 5-mark, MCQ, and important-question formats.</p>
+                </article>
+                <article class="panel dashboard-card" id="revision-mode">
+                    <h3>Revision Mode</h3>
+                    <p class="subtitle">Use rapid revision and memory-booster flows to retain key concepts longer.</p>
+                </article>
+            </section>
+
+            <section class="panel panel-editor premium-card planner-panel" id="study-planner">
+                <h2>Study Planner</h2>
+                <p class="subtitle">Create a daily plan, revision calendar, and final sprint strategy.</p>
+                <form class="note-form" action="{{ url_for('study_planner') }}" method="POST">
+                    <label for="subject">Subject</label>
+                    <input id="subject" type="text" name="subject" placeholder="Physics / Chemistry / Maths" required>
+
+                    <label for="exam_date">Exam date</label>
+                    <input id="exam_date" type="date" name="exam_date" required>
+
+                    <label for="difficulty">Subject difficulty</label>
+                    <select id="difficulty" name="difficulty" required>
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+
+                    <label for="available_hours">Available study hours/day</label>
+                    <input id="available_hours" type="number" name="available_hours" min="0.5" max="16" step="0.5" value="2" required>
+
+                    <button type="submit">Generate Study Plan</button>
+                </form>
+            </section>
+        </main>
+    </div>
     <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/loader.js') }}" defer></script>
 </body>
 </html>

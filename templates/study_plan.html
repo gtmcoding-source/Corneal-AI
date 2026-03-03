@@ -3,43 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Study Plan</title>
+    <title>Study Plan - Corneal AI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="app-shell">
-    <div class="bg-orb orb-a"></div>
-    <div class="bg-orb orb-b"></div>
-    <nav class="topbar">
-        <h1 class="brand">Study Planner</h1>
-        <div class="top-actions">
-            <a class="link-pill" href="{{ url_for('home') }}">Back to App</a>
-            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=note_id) }}">Download PDF</a>
-        </div>
-    </nav>
-    <main class="container page-grid result-page">
-        <aside class="ad-rail ad-left" aria-label="Left advertisement slot">
-            <div class="ad-slot">Sponsored Placement</div>
-        </aside>
-        <section class="panel notes-display">
-            <section class="planner-summary">
-                <h2>{{ subject }} Study Plan</h2>
-                <p>Exam date: <strong>{{ exam_date }}</strong></p>
-                <p>Difficulty: <strong>{{ difficulty }}</strong></p>
-                <p>Daily hours: <strong>{{ available_hours }}</strong></p>
-                {% if not is_premium_user %}
-                    <p class="upgrade-text">
-                        Need more planner usage and memory tools?
-                        <a href="{{ url_for('checkout', plan=upgrade_plan | default('pro')) }}">Upgrade to Pro</a>
-                    </p>
-                {% endif %}
+<body class="app-shell" data-toast="Study plan ready.">
+    <div class="workspace-shell">
+        {% include "partials/app_sidebar.html" %}
+        <main class="workspace-main">
+            <header class="workspace-topbar">
+                <div>
+                    <p class="eyebrow">Study Planner</p>
+                    <h1>{{ subject }} Plan</h1>
+                    <p class="subtitle">Target exam: {{ exam_date }} | Difficulty: {{ difficulty }} | {{ available_hours }}h/day</p>
+                </div>
+                <div class="quick-actions">
+                    <a class="link-pill" href="{{ url_for('home') }}#study-planner">Create Another Plan</a>
+                    <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=note_id) }}">Download PDF</a>
+                </div>
+            </header>
+
+            <section class="panel notes-display premium-card">
+                <article class="note-content note-collapsible">
+                    {{ plan_html | safe }}
+                </article>
             </section>
-            <hr class="notes-divider">
-            {{ plan_markdown | safe }}
-        </section>
-        <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
-            <div class="ad-slot">Sponsored Placement</div>
-        </aside>
-    </main>
+        </main>
+    </div>
+    <div id="toast" class="toast"></div>
+    <a class="sticky-pdf-btn" href="{{ url_for('download_note', note_id=note_id) }}">Generate PDF</a>
+    <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
 </body>
 </html>

@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated Notes</title>
+    <title>Generated Notes - Corneal AI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="app-shell">
-    <div class="bg-orb orb-a"></div>
-    <div class="bg-orb orb-b"></div>
-    <nav class="topbar">
-        <h1 class="brand">Your Notes</h1>
-        <div class="top-actions">
-            <a class="link-pill" href="{{ url_for('journey') }}">Journey Map</a>
-            <a class="link-pill" href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a class="link-pill" href="{{ url_for('privacy') }}">Privacy</a>
-            <a class="link-pill" href="{{ url_for('security') }}">Security</a>
-            <a class="link-pill" href="{{ url_for('home') }}">New Note</a>
-            <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=note_id) }}">Download PDF</a>
-        </div>
-    </nav>
-    <main class="container page-grid result-page">
-        <aside class="ad-rail ad-left" aria-label="Left advertisement slot">
-            <div class="ad-slot">Sponsored Placement</div>
-        </aside>
-        <section class="panel notes-display">
+<body class="app-shell" data-toast="Notes generated successfully.">
+    <div class="workspace-shell">
+        {% include "partials/app_sidebar.html" %}
+        <main class="workspace-main">
+            <header class="workspace-topbar">
+                <div>
+                    <p class="eyebrow">Structured Output</p>
+                    <h1>Generated Notes</h1>
+                    <p class="subtitle">Exam-ready sections with fast revision and assessment tools.</p>
+                </div>
+                <div class="quick-actions">
+                    <a class="link-pill" href="{{ url_for('home') }}">Generate New</a>
+                    <a class="link-pill link-pill-primary" href="{{ url_for('download_note', note_id=note_id) }}">Download PDF</a>
+                </div>
+            </header>
+
             {% set actions = exam_actions | default({}) %}
             {% set memory = memory_actions | default({}) %}
-            <section class="exam-toolbar">
+
+            <section class="panel exam-toolbar premium-card" id="exam-mode">
                 <h2>Exam Mode</h2>
-                <p>Generate exam-focused outputs from these notes.</p>
+                <p>Convert notes into exam scoring patterns.</p>
                 {% if action_error %}
                     <p class="error-message">{{ action_error }}</p>
                 {% endif %}
@@ -38,76 +36,63 @@
                 {% endif %}
                 {% if is_premium_user %}
                     <form class="exam-actions-grid" action="{{ url_for('transform_note', note_id=note_id) }}" method="POST">
-                        <button type="submit" name="action" value="two_mark">{{ actions.get('two_mark', 'Convert to 2-mark answers') }}</button>
-                        <button type="submit" name="action" value="five_mark">{{ actions.get('five_mark', 'Convert to 5-mark answers') }}</button>
-                        <button type="submit" name="action" value="important_questions">{{ actions.get('important_questions', 'Generate Important Questions') }}</button>
-                        <button type="submit" name="action" value="mcq_10">{{ actions.get('mcq_10', 'Create 10 MCQs') }}</button>
-                        <button class="revise-button" type="submit" name="action" value="revise_60">{{ actions.get('revise_60', 'Revise in 60 seconds') }}</button>
+                        <button type="submit" name="action" value="two_mark">2M {{ actions.get('two_mark', '2-mark answers') }}</button>
+                        <button type="submit" name="action" value="five_mark">5M {{ actions.get('five_mark', '5-mark answers') }}</button>
+                        <button type="submit" name="action" value="important_questions">IQ {{ actions.get('important_questions', 'Important Questions') }}</button>
+                        <button type="submit" name="action" value="mcq_10">MCQ {{ actions.get('mcq_10', '10 MCQs') }}</button>
+                        <button class="revise-button" type="submit" name="action" value="revise_60">REV {{ actions.get('revise_60', 'Revise in 60 seconds') }}</button>
                     </form>
                 {% else %}
                     <div class="exam-actions-grid locked-grid">
-                        <button type="button" disabled>Convert to 2-mark answers</button>
-                        <button type="button" disabled>Convert to 5-mark answers</button>
-                        <button type="button" disabled>Generate Important Questions</button>
-                        <button type="button" disabled>Create 10 MCQs</button>
-                        <button class="revise-button" type="button" disabled>Revise in 60 seconds</button>
+                        <button type="button" disabled>2M Convert to 2-mark answers</button>
+                        <button type="button" disabled>5M Convert to 5-mark answers</button>
+                        <button type="button" disabled>IQ Generate Important Questions</button>
+                        <button type="button" disabled>MCQ Create 10 MCQs</button>
+                        <button class="revise-button" type="button" disabled>REV Revise in 60 seconds</button>
                     </div>
                     <p class="upgrade-text">
-                        Unlock Exam Mode and rapid revision with Pro plan.
-                        <a href="{{ url_for('checkout', plan=upgrade_plan | default('pro')) }}">Upgrade to Pro</a>
+                        Unlock Exam Mode with Pro.
+                        <a href="{{ url_for('checkout', plan=upgrade_plan | default('pro')) }}">Upgrade</a>
                     </p>
                 {% endif %}
             </section>
-            <section class="exam-toolbar">
-                <h2>Memory Booster Mode</h2>
-                <p>Keep concepts active with testing and recall flows.</p>
+
+            <section class="panel exam-toolbar premium-card" id="revision-mode">
+                <h2>Memory Booster</h2>
+                <p>Increase retention with flashcards, tests, and rapid revision.</p>
                 {% if is_premium_user %}
                     <form class="exam-actions-grid memory-grid" action="{{ url_for('transform_note', note_id=note_id) }}" method="POST">
-                        <button type="submit" name="action" value="flashcards">{{ memory.get('flashcards', 'Turn into Flashcards') }}</button>
-                        <button type="submit" name="action" value="mcq_test">{{ memory.get('mcq_test', 'Generate MCQ test') }}</button>
-                        <button class="revise-button" type="submit" name="action" value="rapid_revision">{{ memory.get('rapid_revision', 'Rapid revision mode') }}</button>
+                        <button type="submit" name="action" value="flashcards">FC {{ memory.get('flashcards', 'Turn into Flashcards') }}</button>
+                        <button type="submit" name="action" value="mcq_test">TST {{ memory.get('mcq_test', 'Generate MCQ test') }}</button>
+                        <button class="revise-button" type="submit" name="action" value="rapid_revision">RAP {{ memory.get('rapid_revision', 'Rapid revision mode') }}</button>
                     </form>
                 {% else %}
                     <div class="exam-actions-grid locked-grid memory-grid">
-                        <button type="button" disabled>Turn into Flashcards</button>
-                        <button type="button" disabled>Generate MCQ Test</button>
-                        <button class="revise-button" type="button" disabled>Rapid revision mode</button>
+                        <button type="button" disabled>FC Turn into Flashcards</button>
+                        <button type="button" disabled>TST Generate MCQ Test</button>
+                        <button class="revise-button" type="button" disabled>RAP Rapid revision mode</button>
                     </div>
-                    <p class="upgrade-text">
-                        Memory Booster is available on Pro plan.
-                        <a href="{{ url_for('checkout', plan=upgrade_plan | default('pro')) }}">Upgrade to Pro</a>
-                    </p>
                 {% endif %}
             </section>
-            <div class="source-info-wrap">
-                <button class="source-info-icon" type="button" onclick="document.getElementById('source-policy').classList.toggle('show')">i</button>
-                <div id="source-policy" class="source-policy">
-                    Source-backed notes include reference textbook, concept origin, and suggested chapter.
-                    If certainty is low, notes are labeled as: "Concept based on NCERT framework."
+
+            <section class="panel notes-display premium-card">
+                <div class="source-info-wrap">
+                    <button class="source-info-icon" type="button" onclick="document.getElementById('source-policy').classList.toggle('show')">i</button>
+                    <div id="source-policy" class="source-policy">
+                        Source-backed notes include textbook references and chapter mapping.
+                        Low certainty items are marked as "Concept based on NCERT framework."
+                    </div>
                 </div>
-            </div>
-            <hr class="notes-divider">
-            {{ notes | safe }}
-        </section>
-        <aside class="ad-rail ad-right" aria-label="Right advertisement slot">
-            <div class="ad-slot">Sponsored Placement</div>
-        </aside>
-    </main>
+                <article class="note-content note-collapsible">
+                    {{ notes_html | safe }}
+                </article>
+            </section>
+        </main>
+    </div>
 
-    <section class="container bottom-ad-wrap" aria-label="Bottom advertisement slot">
-        <div class="bottom-ad-slot">Sponsored Placement</div>
-    </section>
-
-    <footer class="site-footer">
-        <div class="site-footer-inner">
-            <p>AI Notes Maker</p>
-            <p>Results</p>
-            <p>Download</p>
-            <p>Security</p>
-            <p>Contact</p>
-        </div>
-    </footer>
+    <a class="sticky-pdf-btn" href="{{ url_for('download_note', note_id=note_id) }}">Generate PDF</a>
+    <div id="toast" class="toast"></div>
+    <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/loader.js') }}" defer></script>
 </body>
 </html>
-
-

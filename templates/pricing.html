@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Corneal AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="workspace-shell">
+        {% include "partials/app_sidebar.html" %}
+        <main class="workspace-main">
+            <header class="workspace-topbar">
+                <div>
+                    <p class="eyebrow">Premium Plans</p>
+                    <h1>Choose Your Study Plan</h1>
+                    <p class="subtitle">Transparent pricing for CBSE exam preparation at every level.</p>
+                </div>
+            </header>
+
+            <section class="panel premium-card">
+                <div class="pricing-table-wrap">
+                    <table class="pricing-table">
+                        <thead>
+                            <tr>
+                                <th>Features</th>
+                                <th>Starter</th>
+                                <th class="popular-col">Pro (Most Popular)</th>
+                                <th>Team</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>AI Notes Generation</td><td>Limited</td><td class="popular-col">High Limit</td><td>Shared Limit</td></tr>
+                            <tr><td>Exam Mode</td><td>No</td><td class="popular-col">Yes</td><td>Yes</td></tr>
+                            <tr><td>Memory Booster</td><td>No</td><td class="popular-col">Yes</td><td>Yes</td></tr>
+                            <tr><td>Study Planner</td><td>Basic</td><td class="popular-col">Advanced</td><td>Advanced</td></tr>
+                            <tr><td>Performance Tracking</td><td>Basic</td><td class="popular-col">Detailed</td><td>Detailed</td></tr>
+                            <tr><td>Price</td><td>Free</td><td class="popular-col">$9/month</td><td>$29/month</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="quick-actions">
+                    <a class="link-pill" href="{{ url_for('checkout', plan='starter') }}">Choose Starter</a>
+                    <a class="link-pill link-pill-primary" href="{{ url_for('checkout', plan='pro') }}">Choose Pro</a>
+                    <a class="link-pill" href="{{ url_for('checkout', plan='team') }}">Choose Team</a>
+                </div>
+            </section>
+
+            <section class="dashboard-main-grid">
+                <article class="panel dashboard-card premium-card">
+                    <h3>Testimonials</h3>
+                    <p class="subtitle">"Exam Mode alone saved 2 hours per chapter." - Class 12 Science Student</p>
+                    <p class="subtitle">"Our coaching batch uses Corneal AI for revision consistency." - Mentor</p>
+                </article>
+                <article class="panel dashboard-card premium-card">
+                    <h3>FAQ</h3>
+                    <details>
+                        <summary>Can I switch plans later?</summary>
+                        <p class="subtitle">Yes, you can upgrade or change your plan anytime from billing.</p>
+                    </details>
+                    <details>
+                        <summary>Do I get PDF export?</summary>
+                        <p class="subtitle">Yes, PDF export is available for all plans.</p>
+                    </details>
+                    <details>
+                        <summary>Is this useful for CBSE boards?</summary>
+                        <p class="subtitle">Yes, NCERT alignment and board-focused modes are built for Class 11-12.</p>
+                    </details>
+                </article>
+            </section>
+
+            <footer class="site-footer premium-footer">
+                <div class="site-footer-inner">
+                    <a href="{{ url_for('home') }}">Generate Notes</a>
+                    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                    <a href="{{ url_for('privacy') }}">Privacy</a>
+                    <a href="{{ url_for('terms') }}">Terms</a>
+                    <a href="{{ url_for('contact') }}">Contact</a>
+                </div>
+            </footer>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
+</body>
+</html>

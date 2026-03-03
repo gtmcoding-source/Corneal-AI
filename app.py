@@ -1,16 +1,16 @@
 from functools import wraps
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import re
 from urllib.parse import urlencode, quote_plus
 
 from flask import Flask, render_template, request, redirect, url_for, session, send_file
 from authlib.integrations.flask_client import OAuth
-from sqlalchemy import inspect, or_, text
+from sqlalchemy import inspect, or_, text, func
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
 from database.models import db, User, Notes, Lead
 from utils.ai_handler import generate_notes, transform_notes, TRANSFORM_ACTIONS, generate_study_plan
-from utils.helpers import generate_pdf
+from utils.helpers import generate_pdf, markdown_to_html
 from utils.source_ingestion import build_source_bundle
 
 app = Flask(__name__)
@@ -270,6 +270,14 @@ def _memory_actions_for_view():
     }
 
 
+def _render_result_page(markdown_text, **context):
+    return render_template(
+        "result.html",
+        notes_html=markdown_to_html(markdown_text),
+        **context,
+    )
+
+
 @app.after_request
 def apply_security_headers(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
@@ -305,7 +313,53 @@ def generator_page(mode):
 @login_required
 def dashboard():
     note_count = Notes.query.filter_by(user_id=session["user_id"]).count()
-    return render_template("dashboard.html", note_count=note_count)
+    latest_note = (
+        Notes.query.filter_by(user_id=session["user_id"])
+        .order_by(Notes.created_at.desc())
+        .first()
+    )
+
+    date_rows = (
+        db.session.query(func.date(Notes.created_at))
+        .filter(Notes.user_id == session["user_id"])
+        .group_by(func.date(Notes.created_at))
+        .order_by(func.date(Notes.created_at).desc())
+        .all()
+    )
+    active_days = []
+    for row in date_rows:
+        value = (row[0] or "").strip() if isinstance(row[0], str) else ""
+        if not value:
+            continue
+        try:
+            active_days.append(date.fromisoformat(value))
+        except ValueError:
+            continue
+
+    streak_count = 0
+    cursor = date.today()
+    for day in active_days:
+        if day == cursor:
+            streak_count += 1
+            cursor = cursor - timedelta(days=1)
+        elif day < cursor:
+            break
+
+    progress_percent = min(note_count * 10, 100)
+
+    return render_template(
+        "dashboard.html",
+        note_count=note_count,
+        streak_count=streak_count,
+        progress_percent=progress_percent,
+        latest_note=latest_note,
+    )
+
+
+@app.route("/pricing")
+@login_required
+def pricing():
+    return render_template("pricing.html")
 
 
 @app.route("/privacy")
@@ -744,9 +798,8 @@ def generate():
     db.session.add(new_note)
     db.session.commit()
 
-    return render_template(
-        "result.html",
-        notes=ai_response,
+    return _render_result_page(
+        ai_response,
         note_id=new_note.id,
         exam_actions=_exam_actions_for_view(),
         memory_actions=_memory_actions_for_view(),
@@ -762,9 +815,8 @@ def transform_note(note_id):
     user_plan = user.plan or "starter"
     if not _is_premium_plan(user_plan):
         source_note = Notes.query.filter_by(id=note_id, user_id=session["user_id"]).first_or_404()
-        return render_template(
-            "result.html",
-            notes=source_note.result,
+        return _render_result_page(
+            source_note.result,
             note_id=source_note.id,
             exam_actions=_exam_actions_for_view(),
             memory_actions=_memory_actions_for_view(),
@@ -777,9 +829,8 @@ def transform_note(note_id):
     action = (request.form.get("action") or "").strip().lower()
 
     if action not in TRANSFORM_ACTIONS:
-        return render_template(
-            "result.html",
-            notes=source_note.result,
+        return _render_result_page(
+            source_note.result,
             note_id=source_note.id,
             exam_actions=_exam_actions_for_view(),
             memory_actions=_memory_actions_for_view(),
@@ -798,9 +849,8 @@ def transform_note(note_id):
     db.session.add(generated_note)
     db.session.commit()
 
-    return render_template(
-        "result.html",
-        notes=transformed_result,
+    return _render_result_page(
+        transformed_result,
         note_id=generated_note.id,
         exam_actions=_exam_actions_for_view(),
         memory_actions=_memory_actions_for_view(),
@@ -870,7 +920,7 @@ def study_planner():
 
     return render_template(
         "study_plan.html",
-        plan_markdown=plan_output,
+        plan_html=markdown_to_html(plan_output),
         note_id=planner_note.id,
         subject=subject,
         exam_date=exam_date_raw,
