@@ -126,6 +126,19 @@ TRANSFORM_ACTIONS = {
             "- 5 trap areas students often forget."
         ),
     },
+    "mind_map": {
+        "label": "Generate Mind Map",
+        "instruction": (
+            "Create a visually structured Mermaid mind map from the notes with an exam-first hierarchy."
+        ),
+        "output_format": (
+            "## Visual Mind Map\n"
+            "- Return one Mermaid code block only, using `mindmap` syntax.\n"
+            "- Root should be the chapter/topic.\n"
+            "- Include branches for Definition, Key Concepts, Important Formula, Common Mistakes, Exam Questions.\n"
+            "- Keep labels concise and student-friendly."
+        ),
+    },
 }
 
 

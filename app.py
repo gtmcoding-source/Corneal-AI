@@ -267,6 +267,7 @@ def _memory_actions_for_view():
         "flashcards": TRANSFORM_ACTIONS["flashcards"]["label"],
         "mcq_test": TRANSFORM_ACTIONS["mcq_test"]["label"],
         "rapid_revision": TRANSFORM_ACTIONS["rapid_revision"]["label"],
+        "mind_map": TRANSFORM_ACTIONS["mind_map"]["label"],
     }
 
 

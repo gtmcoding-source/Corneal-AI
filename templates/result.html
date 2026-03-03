@@ -65,12 +65,14 @@
                         <button type="submit" name="action" value="flashcards">FC {{ memory.get('flashcards', 'Turn into Flashcards') }}</button>
                         <button type="submit" name="action" value="mcq_test">TST {{ memory.get('mcq_test', 'Generate MCQ test') }}</button>
                         <button class="revise-button" type="submit" name="action" value="rapid_revision">RAP {{ memory.get('rapid_revision', 'Rapid revision mode') }}</button>
+                        <button class="revise-button" type="submit" name="action" value="mind_map">MAP {{ memory.get('mind_map', 'Generate Mind Map') }}</button>
                     </form>
                 {% else %}
                     <div class="exam-actions-grid locked-grid memory-grid">
                         <button type="button" disabled>FC Turn into Flashcards</button>
                         <button type="button" disabled>TST Generate MCQ Test</button>
                         <button class="revise-button" type="button" disabled>RAP Rapid revision mode</button>
+                        <button class="revise-button" type="button" disabled>MAP Generate Mind Map</button>
                     </div>
                 {% endif %}
             </section>
@@ -92,6 +94,23 @@
 
     <a class="sticky-pdf-btn" href="{{ url_for('download_note', note_id=note_id) }}">Generate PDF</a>
     <div id="toast" class="toast"></div>
+    <script type="module">
+        import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+        mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: "default" });
+        window.renderMermaidMindmaps = async () => {
+            const codeBlocks = document.querySelectorAll("pre code.language-mermaid");
+            codeBlocks.forEach((block, idx) => {
+                const wrapper = block.closest("pre");
+                if (!wrapper) return;
+                const mermaidEl = document.createElement("div");
+                mermaidEl.className = "mermaid";
+                mermaidEl.id = `mindmap-${idx}`;
+                mermaidEl.textContent = block.textContent || "";
+                wrapper.replaceWith(mermaidEl);
+            });
+            await mermaid.run({ querySelector: ".mermaid" });
+        };
+    </script>
     <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/loader.js') }}" defer></script>
 </body>

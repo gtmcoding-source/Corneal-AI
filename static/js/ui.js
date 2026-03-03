@@ -2,6 +2,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     if (!body) return;
 
+    const themeToggle = document.getElementById("theme-toggle");
+    const savedTheme = window.localStorage.getItem("corneal-theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
+    body.setAttribute("data-theme", initialTheme);
+    if (themeToggle) {
+        themeToggle.textContent = initialTheme === "dark" ? "Light Mode" : "Dark Mode";
+        themeToggle.addEventListener("click", () => {
+            const current = body.getAttribute("data-theme") || "light";
+            const next = current === "dark" ? "light" : "dark";
+            body.setAttribute("data-theme", next);
+            window.localStorage.setItem("corneal-theme", next);
+            themeToggle.textContent = next === "dark" ? "Light Mode" : "Dark Mode";
+        });
+    }
+
     body.classList.add("motion-enabled");
 
     const revealTargets = document.querySelectorAll(
@@ -92,5 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
         toastNode.textContent = toastMessage;
         toastNode.classList.add("toast-show");
         window.setTimeout(() => toastNode.classList.remove("toast-show"), 2800);
+    }
+
+    if (typeof window.renderMermaidMindmaps === "function") {
+        window.renderMermaidMindmaps();
     }
 });

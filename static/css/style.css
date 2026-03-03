@@ -1692,3 +1692,91 @@ body.motion-enabled [data-reveal].is-visible {
         font-size: 0.9rem;
     }
 }
+
+/* Theme and visual palette upgrades */
+body.app-shell,
+body.landing-shell {
+    background:
+        radial-gradient(circle at 8% 6%, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0) 34%),
+        radial-gradient(circle at 92% 10%, rgba(59, 130, 246, 0.18), rgba(59, 130, 246, 0) 32%),
+        linear-gradient(165deg, #e8f3ff 0%, #dbeafe 42%, #f0f9ff 100%);
+}
+
+.theme-toggle-btn {
+    width: 100%;
+    border: 1px solid rgba(16, 33, 39, 0.14);
+    background: rgba(219, 234, 254, 0.74);
+    color: var(--primary-2);
+    border-radius: 10px;
+    padding: 0.55rem 0.65rem;
+    font: 700 0.86rem 'Space Grotesk', 'Segoe UI', sans-serif;
+    cursor: pointer;
+}
+
+.mermaid {
+    border: 1px solid rgba(16, 33, 39, 0.14);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.94);
+    padding: 0.65rem;
+    margin: 0.8rem 0 1rem;
+    overflow-x: auto;
+}
+
+body[data-theme="dark"] {
+    --bg: #061220;
+    --bg-2: #0a1727;
+    --ink: #e2e8f0;
+    --muted: #94a3b8;
+    --line: rgba(148, 163, 184, 0.26);
+    --panel: rgba(12, 24, 38, 0.92);
+    --shadow: 0 14px 28px rgba(2, 6, 23, 0.48);
+    color: var(--ink);
+    background:
+        radial-gradient(circle at 8% 6%, rgba(56, 189, 248, 0.18), rgba(56, 189, 248, 0) 34%),
+        radial-gradient(circle at 92% 10%, rgba(37, 99, 235, 0.18), rgba(37, 99, 235, 0) 32%),
+        linear-gradient(165deg, #020817 0%, #0b1526 48%, #111b2d 100%);
+}
+
+body[data-theme="dark"] .panel,
+body[data-theme="dark"] .app-sidebar,
+body[data-theme="dark"] .workspace-topbar,
+body[data-theme="dark"] .note-content,
+body[data-theme="dark"] .link-pill,
+body[data-theme="dark"] .mode-pill,
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea,
+body[data-theme="dark"] .dashboard-kpi-card,
+body[data-theme="dark"] .pricing-table th,
+body[data-theme="dark"] .pricing-table td,
+body[data-theme="dark"] .mermaid {
+    background: rgba(12, 24, 38, 0.94);
+    color: var(--ink);
+    border-color: rgba(148, 163, 184, 0.24);
+}
+
+body[data-theme="dark"] .theme-toggle-btn {
+    background: rgba(30, 41, 59, 0.86);
+    color: #bfdbfe;
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+body[data-theme="dark"] .sidebar-link {
+    background: rgba(15, 23, 42, 0.86);
+    color: #cbd5e1;
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+body[data-theme="dark"] .sidebar-link-active {
+    background: rgba(30, 58, 138, 0.42);
+    color: #bfdbfe;
+    border-color: rgba(96, 165, 250, 0.45);
+}
+
+body[data-theme="dark"] .note-section-card summary {
+    background: rgba(30, 41, 59, 0.7);
+}
+
+body[data-theme="dark"] .sticky-pdf-btn {
+    box-shadow: 0 14px 24px rgba(3, 7, 18, 0.6);
+}
