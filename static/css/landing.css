@@ -1,0 +1,103 @@
+.landing-shell {
+    position: relative;
+}
+
+.landing-shell::before {
+    content: "";
+    position: fixed;
+    inset: -30% -16% auto;
+    height: 66vh;
+    z-index: -5;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.22), rgba(124, 58, 237, 0.13) 44%, transparent 70%);
+    filter: blur(36px);
+    animation: aiPulse 8s ease-in-out infinite;
+}
+
+.landing-shell::after {
+    content: "";
+    position: fixed;
+    inset: -20% -16%;
+    z-index: -6;
+    pointer-events: none;
+    background:
+        radial-gradient(at 18% 20%, rgba(37, 99, 235, 0.14), transparent 48%),
+        radial-gradient(at 80% 22%, rgba(124, 58, 237, 0.12), transparent 42%),
+        radial-gradient(at 60% 80%, rgba(14, 165, 233, 0.1), transparent 45%);
+    filter: blur(18px);
+    animation: meshDrift 22s ease-in-out infinite alternate;
+}
+
+.bg-orb {
+    filter: blur(40px);
+    opacity: 0.28;
+    animation: floatSoft 16s ease-in-out infinite;
+}
+
+.business-hero {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.business-hero > div h2 {
+    color: #0b1222;
+    font-weight: 800;
+    max-width: 20ch;
+}
+
+.business-hero .hero-cta {
+    position: relative;
+    isolation: isolate;
+}
+
+.business-hero .hero-cta::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(110deg, rgba(37, 99, 235, 0.38), rgba(124, 58, 237, 0.34));
+    filter: blur(10px);
+    opacity: 0;
+    transition: opacity 250ms var(--ease-premium);
+}
+
+.business-hero .hero-cta:hover::before {
+    opacity: 1;
+}
+
+.hero-proof-card {
+    border-radius: 22px;
+    box-shadow: var(--shadow-md);
+}
+
+.hero-badges span,
+.brand-strip p,
+.trust-strip p {
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+.top-actions .link-pill-primary {
+    background: linear-gradient(118deg, #2563eb 0%, #7c3aed 100%);
+    color: #fff;
+    border-color: transparent;
+}
+
+body[data-theme="dark"] .business-hero > div h2 {
+    color: #e2e8f0;
+}
+
+body[data-theme="dark"] .landing-shell::before {
+    opacity: 0.8;
+}
+
+body[data-theme="dark"] .landing-shell::after {
+    opacity: 0.72;
+}
+
+body[data-theme="dark"] .hero-badges span,
+body[data-theme="dark"] .brand-strip p,
+body[data-theme="dark"] .trust-strip p {
+    background: rgba(15, 23, 42, 0.56);
+}

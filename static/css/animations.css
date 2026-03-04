@@ -1,0 +1,85 @@
+[data-reveal] {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 280ms var(--ease-premium), transform 300ms var(--ease-premium);
+}
+
+[data-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.link-pill-primary::after,
+.hero-cta::after,
+button::after {
+    content: "";
+    position: absolute;
+    top: -120%;
+    left: -42%;
+    width: 30%;
+    height: 320%;
+    transform: rotate(22deg) translateX(-210%);
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0));
+    pointer-events: none;
+}
+
+.link-pill-primary:hover::after,
+.hero-cta:hover::after,
+button:hover::after {
+    animation: shineSweep 900ms ease;
+}
+
+@keyframes shineSweep {
+    to {
+        transform: rotate(22deg) translateX(530%);
+    }
+}
+
+@keyframes aiPulse {
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes floatSoft {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(10px, -9px, 0);
+    }
+}
+
+@keyframes meshDrift {
+    0% {
+        transform: translate3d(-1%, -1%, 0) scale(1);
+    }
+
+    50% {
+        transform: translate3d(2%, 1.5%, 0) scale(1.04);
+    }
+
+    100% {
+        transform: translate3d(-1%, 2%, 0) scale(1.01);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    [data-reveal] {
+        opacity: 1;
+        transform: none;
+    }
+}

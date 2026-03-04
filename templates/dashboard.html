@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="app-shell">
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <div class="shape-3d shape-3d-a" aria-hidden="true"></div>
+    <div class="shape-3d shape-3d-b" aria-hidden="true"></div>
+    <div class="shape-3d shape-3d-c" aria-hidden="true"></div>
     <div class="workspace-shell">
         {% include "partials/app_sidebar.html" %}
         <main class="workspace-main">
@@ -22,18 +26,58 @@
                 </div>
             </header>
 
+            <section class="panel dashboard-hero glass-panel">
+                <div class="dashboard-hero-copy">
+                    <p class="eyebrow">Built for focused exam prep</p>
+                    <h2>Clarity-first workspace for <span class="text-gradient">faster, smarter revision</span>.</h2>
+                    <p class="subtitle">Generate notes, revise with AI, and track progress in one calm command center.</p>
+                    <div class="quick-actions">
+                        <a class="link-pill link-pill-primary" href="{{ url_for('home') }}">Start New Session</a>
+                        <a class="link-pill" href="{{ url_for('pricing') }}">See Pro Features</a>
+                    </div>
+                    <div class="trust-badges">
+                        <span>Used by 10,000+ students</span>
+                        <span>AI Powered</span>
+                        <span>Secure &amp; Private</span>
+                    </div>
+                </div>
+                <div class="dashboard-preview" aria-hidden="true">
+                    <div class="preview-topline"></div>
+                    <div class="preview-grid">
+                        <div class="preview-card preview-card-main">
+                            <div class="preview-line w-70"></div>
+                            <div class="preview-line w-45"></div>
+                            <div class="preview-progress">
+                                <span></span>
+                            </div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="preview-line w-50"></div>
+                            <div class="preview-metrics">
+                                <span></span><span></span><span></span>
+                            </div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="preview-line w-60"></div>
+                            <div class="preview-line w-80"></div>
+                            <div class="preview-line w-40"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section class="dashboard-kpi-grid">
                 <article class="dashboard-kpi-card">
                     <p class="kpi-label">Notes Generated</p>
-                    <p class="kpi-value">{{ note_count }}</p>
+                    <p class="kpi-value counter-ready">{{ note_count }}</p>
                 </article>
                 <article class="dashboard-kpi-card">
                     <p class="kpi-label">Current Streak</p>
-                    <p class="kpi-value">{{ streak_count }} day{% if streak_count != 1 %}s{% endif %}</p>
+                    <p class="kpi-value counter-ready">{{ streak_count }} day{% if streak_count != 1 %}s{% endif %}</p>
                 </article>
                 <article class="dashboard-kpi-card" id="progress">
                     <p class="kpi-label">Topics Progress</p>
-                    <p class="kpi-value">{{ progress_percent }}%</p>
+                    <p class="kpi-value counter-ready">{{ progress_percent }}%</p>
                     <div class="study-progress-track">
                         <span class="study-progress-fill" style="width: {{ progress_percent }}%;"></span>
                     </div>
@@ -69,6 +113,7 @@
                         <a class="link-pill" href="{{ url_for('home') }}#exam-mode">Open Exam Mode</a>
                         <a class="link-pill" href="{{ url_for('home') }}#revision-mode">Open Revision</a>
                         <a class="link-pill" href="{{ url_for('home') }}#study-planner">Open Planner</a>
+                        <a class="link-pill" href="{{ url_for('profile') }}">Edit Profile</a>
                         <a class="link-pill" href="{{ url_for('checkout', plan='pro') }}">Upgrade to Pro</a>
                     </div>
                 </article>

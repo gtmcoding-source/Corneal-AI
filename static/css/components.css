@@ -1,0 +1,110 @@
+.panel {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+}
+
+.premium-card,
+.dashboard-hero,
+.workspace-topbar {
+    box-shadow: var(--shadow-md);
+}
+
+.dashboard-card {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+    transition: transform 240ms var(--ease-premium), box-shadow 240ms var(--ease-premium), border-color 240ms var(--ease-premium), background-color 240ms var(--ease-premium);
+}
+
+.dashboard-card:hover,
+.plan-box:hover,
+.feature-card:hover,
+.step-card:hover,
+.metric-item:hover,
+.quote-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+.dashboard-card.premium-card,
+.hero-proof-card,
+.dashboard-preview {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.68));
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+button,
+.link-pill,
+.hero-cta,
+.mode-pill {
+    transition: transform 220ms var(--ease-premium), box-shadow 240ms var(--ease-premium), background-color 220ms var(--ease-premium), border-color 220ms var(--ease-premium), color 220ms var(--ease-premium);
+}
+
+button:hover,
+.link-pill:hover,
+.hero-cta:hover {
+    transform: translateY(-2px) scale(1.01);
+}
+
+button:active,
+.link-pill:active,
+.hero-cta:active {
+    transform: translateY(0) scale(0.985);
+}
+
+button,
+.link-pill-primary,
+.hero-cta,
+.theme-toggle-btn {
+    border-radius: 999px;
+}
+
+.link-pill-primary,
+.hero-cta,
+button {
+    background: linear-gradient(120deg, var(--primary) 0%, var(--primary-600) 42%, var(--accent) 100%);
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+}
+
+.link-pill-primary:hover,
+.hero-cta:hover,
+button:hover {
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+}
+
+.mode-pill-active,
+.sidebar-link-active {
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25) inset, 0 8px 16px rgba(37, 99, 235, 0.14);
+}
+
+.kpi-value,
+.metric-value {
+    letter-spacing: -0.02em;
+}
+
+.counter-ready {
+    --value: 0;
+    --counter-duration: 1.2s;
+}
+
+body[data-theme="dark"] .panel,
+body[data-theme="dark"] .dashboard-card,
+body[data-theme="dark"] .feature-card,
+body[data-theme="dark"] .step-card,
+body[data-theme="dark"] .metric-item,
+body[data-theme="dark"] .quote-card,
+body[data-theme="dark"] .plan-box,
+body[data-theme="dark"] .dashboard-preview,
+body[data-theme="dark"] .hero-proof-card {
+    background: var(--card-bg);
+    border-color: var(--line);
+    box-shadow: 0 14px 32px rgba(2, 6, 23, 0.32);
+}
+
+body[data-theme="dark"] .topbar,
+body[data-theme="dark"] .landing-topbar,
+body[data-theme="dark"] .workspace-topbar {
+    background: rgba(15, 23, 42, 0.72);
+}

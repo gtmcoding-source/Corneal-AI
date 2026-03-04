@@ -22,14 +22,37 @@
     <main class="container">
         <section class="panel landing-card">
             <h2>Account Details</h2>
+            <p class="subtitle">Update your basic account details below.</p>
+
+            {% if error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+            {% if success %}
+                <p class="success-message">{{ success }}</p>
+            {% endif %}
+
+            <form class="auth-form" method="POST" action="{{ url_for('profile') }}">
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username" value="{{ user.username }}" maxlength="100" required>
+
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" value="{{ user.email or '' }}" placeholder="you@example.com">
+
+                <label for="mobile">Mobile</label>
+                <input id="mobile" type="tel" name="mobile" value="{{ user.mobile or '' }}" placeholder="10 to 15 digits">
+
+                <div class="quick-actions">
+                    <button type="submit">Save Profile</button>
+                    <a class="link-pill" href="{{ url_for('checkout', plan=(user.plan or 'pro')) }}">Manage Billing</a>
+                </div>
+            </form>
+
+            <hr class="notes-divider">
+
             <ul class="landing-list">
-                <li><strong>Username:</strong> {{ user.username }}</li>
-                <li><strong>Email:</strong> {{ user.email or 'Not set' }}</li>
-                <li><strong>Mobile:</strong> {{ user.mobile or 'Not set' }}</li>
-                <li><strong>Plan:</strong> {{ (user.plan or 'starter').title() }}</li>
+                <li><strong>Current plan:</strong> {{ (user.plan or 'starter').title() }}</li>
                 <li><strong>Last payment platform:</strong> {{ (user.last_payment_provider or 'Not available').title() }}</li>
             </ul>
-            <a class="link-pill" href="{{ url_for('checkout', plan=(user.plan or 'pro')) }}">Manage Billing</a>
         </section>
     </main>
 

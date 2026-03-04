@@ -1,6 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     if (!body) return;
+    body.classList.add("page-enter");
+    window.requestAnimationFrame(() => body.classList.add("page-ready"));
+
+    const syncScrollState = () => {
+        if (window.scrollY > 12) {
+            body.classList.add("nav-scrolled");
+        } else {
+            body.classList.remove("nav-scrolled");
+        }
+    };
+    syncScrollState();
+    window.addEventListener("scroll", syncScrollState, { passive: true });
 
     const themeToggle = document.getElementById("theme-toggle");
     const savedTheme = window.localStorage.getItem("corneal-theme");
@@ -113,4 +125,31 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof window.renderMermaidMindmaps === "function") {
         window.renderMermaidMindmaps();
     }
+
+    const isInternalLink = (href) => {
+        if (!href || href.startsWith("#")) return false;
+        if (href.startsWith("mailto:") || href.startsWith("tel:")) return false;
+        return href.startsWith("/") || href.startsWith(window.location.origin);
+    };
+
+    document.querySelectorAll("a[href]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+            if (event.defaultPrevented) return;
+            if (link.target === "_blank") return;
+            if (link.hasAttribute("download")) return;
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+            const href = link.getAttribute("href") || "";
+            if (!isInternalLink(href)) return;
+
+            const targetUrl = new URL(href, window.location.origin);
+            if (targetUrl.pathname === window.location.pathname && targetUrl.hash) return;
+
+            event.preventDefault();
+            body.classList.add("page-leaving");
+            window.setTimeout(() => {
+                window.location.href = targetUrl.href;
+            }, 180);
+        });
+    });
 });

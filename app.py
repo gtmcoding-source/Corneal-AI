@@ -433,11 +433,40 @@ def contact():
 def health():
     return {"status": "ok"}, 200
 
-@app.route("/profile")
+@app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
     user = User.query.get_or_404(session["user_id"])
-    return render_template("profile.html", user=user)
+    error = None
+    success = None
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        mobile = normalize_mobile(request.form.get("mobile", "").strip())
+
+        if not username:
+            error = "Username is required."
+        elif len(username) > 100:
+            error = "Username must be 100 characters or fewer."
+        elif email and not is_valid_email(email):
+            error = "Please provide a valid email address."
+        elif mobile and not is_valid_mobile(mobile):
+            error = "Use a valid mobile number (10 to 15 digits)."
+        elif User.query.filter(User.username == username, User.id != user.id).first():
+            error = "Username already exists."
+        elif email and User.query.filter(User.email == email, User.id != user.id).first():
+            error = "Email already exists."
+        elif mobile and User.query.filter(User.mobile == mobile, User.id != user.id).first():
+            error = "Mobile number already exists."
+        else:
+            user.username = username
+            user.email = email or None
+            user.mobile = mobile or None
+            db.session.commit()
+            success = "Profile updated successfully."
+
+    return render_template("profile.html", user=user, error=error, success=success)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
