@@ -1,0 +1,91 @@
+/* Performance-first overrides to keep the UI smooth on mid/low-end devices */
+body,
+body.page-enter,
+body.page-enter.page-ready,
+body.page-leaving {
+    filter: none !important;
+}
+
+body {
+    transition: background-color 180ms ease, color 180ms ease;
+}
+
+.topbar,
+.landing-topbar,
+.workspace-topbar,
+.app-sidebar,
+.panel,
+.dashboard-card,
+.dashboard-kpi-card,
+.dashboard-preview,
+.preview-card,
+.trust-badges span,
+.hero-proof-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.mesh-bg,
+.shape-3d,
+.landing-shell::before,
+.landing-shell::after {
+    animation-duration: 36s !important;
+}
+
+.bg-orb {
+    animation-duration: 28s !important;
+    opacity: 0.2;
+}
+
+.panel,
+.dashboard-card,
+.dashboard-kpi-card,
+.workspace-topbar,
+.app-sidebar {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+button,
+.link-pill,
+.hero-cta,
+.mode-pill,
+.sidebar-link,
+.dashboard-card,
+.dashboard-kpi-card,
+.plan-box,
+.feature-card,
+.step-card,
+.metric-item,
+.quote-card {
+    transition-duration: 160ms !important;
+}
+
+button::after,
+.link-pill-primary::after,
+.hero-cta::after {
+    display: none;
+}
+
+[data-reveal] {
+    transition: opacity 200ms ease, transform 220ms ease;
+}
+
+@media (max-width: 980px) {
+    .mesh-bg,
+    .shape-3d,
+    .bg-orb,
+    .landing-shell::before,
+    .landing-shell::after {
+        display: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mesh-bg,
+    .shape-3d,
+    .bg-orb,
+    .landing-shell::before,
+    .landing-shell::after {
+        display: none !important;
+    }
+}
