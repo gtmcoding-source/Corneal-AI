@@ -561,7 +561,14 @@ def login():
 def oauth_login(provider):
     provider_key = provider.strip().lower()
     if provider_key in {"auth0", "google", "github"}:
-        return redirect(url_for(f"{provider_key}_login"))
+        return redirect(
+            url_for(
+                f"{provider_key}_login",
+                next=request.args.get("next"),
+                intent=request.args.get("intent"),
+                plan=request.args.get("plan"),
+            )
+        )
     return render_template("login.html", error="Requested login provider is not available."), 404
 
 
@@ -569,6 +576,9 @@ def oauth_login(provider):
 def auth0_login():
     if not getattr(oauth, "auth0", None):
         return render_template("login.html", error="Auth0 is not configured."), 500
+    session["oauth_next"] = _safe_next_url(request.args.get("next")) or ""
+    session["oauth_intent"] = (request.args.get("intent") or "login").strip().lower()
+    session["oauth_plan"] = _resolve_plan(request.args.get("plan"))
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("auth0_callback", _external=True)
     )
@@ -610,9 +620,24 @@ def _login_oauth_user(provider_name, provider_sub, email=None, display_name=None
 
     db.session.commit()
 
+    oauth_next = _safe_next_url(session.get("oauth_next"))
+    oauth_intent = (session.get("oauth_intent") or "").strip().lower()
+    oauth_plan = _resolve_plan(session.get("oauth_plan"))
+
     session.clear()
     session["user_id"] = user.id
     session["oauth_provider"] = provider_name
+
+    if oauth_intent == "register":
+        user.plan = oauth_plan
+        db.session.commit()
+        if PLAN_CONFIG[oauth_plan]["price_cents"] > 0:
+            return redirect(url_for("checkout", plan=oauth_plan))
+        return redirect(url_for("home"))
+
+    if oauth_next:
+        return redirect(oauth_next)
+
     return redirect(url_for("home"))
 
 
@@ -637,6 +662,9 @@ def auth0_callback():
 def google_login():
     if not getattr(oauth, "google", None):
         return render_template("login.html", error="Google login is not configured."), 500
+    session["oauth_next"] = _safe_next_url(request.args.get("next")) or ""
+    session["oauth_intent"] = (request.args.get("intent") or "login").strip().lower()
+    session["oauth_plan"] = _resolve_plan(request.args.get("plan"))
     return oauth.google.authorize_redirect(
         redirect_uri=url_for("google_callback", _external=True)
     )
@@ -668,6 +696,9 @@ def google_callback():
 def github_login():
     if not getattr(oauth, "github", None):
         return render_template("login.html", error="GitHub login is not configured."), 500
+    session["oauth_next"] = _safe_next_url(request.args.get("next")) or ""
+    session["oauth_intent"] = (request.args.get("intent") or "login").strip().lower()
+    session["oauth_plan"] = _resolve_plan(request.args.get("plan"))
     return oauth.github.authorize_redirect(
         redirect_uri=url_for("github_callback", _external=True)
     )

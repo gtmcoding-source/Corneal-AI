@@ -20,13 +20,13 @@
             {% if google_oauth_enabled or github_oauth_enabled or auth0_oauth_enabled %}
                 <div class="oauth-row">
                     {% if google_oauth_enabled %}
-                        <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
+                        <a class="oauth-btn" href="{{ url_for('google_login', next=next_url, intent='login') }}">Continue with Gmail</a>
                     {% endif %}
                     {% if github_oauth_enabled %}
-                        <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
+                        <a class="oauth-btn" href="{{ url_for('github_login', next=next_url, intent='login') }}">Continue with GitHub</a>
                     {% endif %}
                     {% if auth0_oauth_enabled %}
-                        <a class="oauth-btn oauth-btn-wide" href="{{ url_for('auth0_login') }}">Continue with Auth0</a>
+                        <a class="oauth-btn oauth-btn-wide" href="{{ url_for('auth0_login', next=next_url, intent='login') }}">Continue with Auth0</a>
                     {% endif %}
                 </div>
             {% else %}

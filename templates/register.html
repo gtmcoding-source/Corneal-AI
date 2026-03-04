@@ -19,10 +19,10 @@
             {% if google_oauth_enabled or github_oauth_enabled %}
                 <div class="oauth-row">
                     {% if google_oauth_enabled %}
-                        <a class="oauth-btn" href="{{ url_for('google_login') }}">Continue with Gmail</a>
+                        <a class="oauth-btn" href="{{ url_for('google_login', intent='register', plan=(selected_plan or 'starter')) }}">Continue with Gmail</a>
                     {% endif %}
                     {% if github_oauth_enabled %}
-                        <a class="oauth-btn" href="{{ url_for('github_login') }}">Continue with GitHub</a>
+                        <a class="oauth-btn" href="{{ url_for('github_login', intent='register', plan=(selected_plan or 'starter')) }}">Continue with GitHub</a>
                     {% endif %}
                 </div>
             {% else %}
