@@ -73,14 +73,19 @@ h3 {
 }
 
 body[data-theme="dark"] {
-    --ink: #e2e8f0;
-    --ink-soft: #a3b1c6;
-    --line: rgba(148, 163, 184, 0.24);
-    --card-bg: rgba(255, 255, 255, 0.07);
-    --card-bg-soft: rgba(255, 255, 255, 0.05);
+    --primary: #3b82f6;
+    --primary-600: #2563eb;
+    --accent: #14b8a6;
+    --bg-dark: #0b1220;
+    --bg-dark-2: #111827;
+    --ink: #e6edf7;
+    --ink-soft: #b7c3d6;
+    --line: rgba(148, 163, 184, 0.2);
+    --card-bg: rgba(17, 24, 39, 0.76);
+    --card-bg-soft: rgba(17, 24, 39, 0.62);
     color: var(--ink);
     background:
-        radial-gradient(circle at 12% -10%, rgba(37, 99, 235, 0.22), transparent 46%),
-        radial-gradient(circle at 90% -20%, rgba(124, 58, 237, 0.2), transparent 44%),
+        radial-gradient(circle at 12% -10%, rgba(59, 130, 246, 0.14), transparent 46%),
+        radial-gradient(circle at 90% -20%, rgba(20, 184, 166, 0.1), transparent 44%),
         linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-dark-2) 100%);
 }

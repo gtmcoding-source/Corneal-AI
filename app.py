@@ -78,10 +78,18 @@ if Config.GITHUB_CLIENT_ID and Config.GITHUB_CLIENT_SECRET:
 @app.context_processor
 def inject_oauth_provider_flags():
     return {
-        "google_oauth_enabled": bool(getattr(oauth, "google", None)),
-        "github_oauth_enabled": bool(getattr(oauth, "github", None)),
-        "auth0_oauth_enabled": bool(getattr(oauth, "auth0", None)),
+        "google_oauth_enabled": bool(Config.GOOGLE_CLIENT_ID and Config.GOOGLE_CLIENT_SECRET),
+        "github_oauth_enabled": bool(Config.GITHUB_CLIENT_ID and Config.GITHUB_CLIENT_SECRET),
+        "auth0_oauth_enabled": bool(Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID and Config.AUTH0_CLIENT_SECRET),
     }
+
+
+app.logger.info(
+    "OAuth provider flags at startup: google=%s github=%s auth0=%s",
+    bool(Config.GOOGLE_CLIENT_ID and Config.GOOGLE_CLIENT_SECRET),
+    bool(Config.GITHUB_CLIENT_ID and Config.GITHUB_CLIENT_SECRET),
+    bool(Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID and Config.AUTH0_CLIENT_SECRET),
+)
 
 # ==============================
 # Helpers
@@ -163,6 +171,10 @@ def is_strong_password(password):
     has_lower = any(ch.islower() for ch in candidate)
     has_digit = any(ch.isdigit() for ch in candidate)
     return has_upper and has_lower and has_digit
+
+
+def _to_bool(value):
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _safe_next_url(next_url):
@@ -531,10 +543,11 @@ def login():
     if request.method == "POST":
         identifier = request.form.get("identifier", "").strip()
         password = request.form.get("password", "").strip()
+        remember_me = _to_bool(request.form.get("remember_me"))
         safe_next = _safe_next_url(request.form.get("next"))
 
         if not identifier or not password:
-            return render_template("login.html", error="Identifier and password are required.", next_url=safe_next), 400
+            return render_template("login.html", error="Identifier and password are required.", next_url=safe_next, remember_me=remember_me), 400
 
         lowered_identifier = identifier.lower()
         mobile_identifier = normalize_mobile(identifier)
@@ -551,11 +564,12 @@ def login():
 
         if user and check_password_hash(user.password, password):
             session.clear()
+            session.permanent = remember_me
             session["user_id"] = user.id
             return redirect(safe_next or url_for("home"))
 
-        return render_template("login.html", error="Invalid credentials.", next_url=safe_next), 401
-    return render_template("login.html", next_url=safe_next)
+        return render_template("login.html", error="Invalid credentials.", next_url=safe_next, remember_me=remember_me), 401
+    return render_template("login.html", next_url=safe_next, remember_me=False)
 
 @app.route("/login/oauth/<provider>")
 def oauth_login(provider):
@@ -567,6 +581,7 @@ def oauth_login(provider):
                 next=request.args.get("next"),
                 intent=request.args.get("intent"),
                 plan=request.args.get("plan"),
+                remember=request.args.get("remember"),
             )
         )
     return render_template("login.html", error="Requested login provider is not available."), 404
@@ -579,6 +594,7 @@ def auth0_login():
     session["oauth_next"] = _safe_next_url(request.args.get("next")) or ""
     session["oauth_intent"] = (request.args.get("intent") or "login").strip().lower()
     session["oauth_plan"] = _resolve_plan(request.args.get("plan"))
+    session["oauth_remember"] = "1" if _to_bool(request.args.get("remember")) else "0"
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("auth0_callback", _external=True)
     )
@@ -623,8 +639,10 @@ def _login_oauth_user(provider_name, provider_sub, email=None, display_name=None
     oauth_next = _safe_next_url(session.get("oauth_next"))
     oauth_intent = (session.get("oauth_intent") or "").strip().lower()
     oauth_plan = _resolve_plan(session.get("oauth_plan"))
+    oauth_remember = _to_bool(session.get("oauth_remember"))
 
     session.clear()
+    session.permanent = oauth_remember
     session["user_id"] = user.id
     session["oauth_provider"] = provider_name
 
@@ -665,6 +683,7 @@ def google_login():
     session["oauth_next"] = _safe_next_url(request.args.get("next")) or ""
     session["oauth_intent"] = (request.args.get("intent") or "login").strip().lower()
     session["oauth_plan"] = _resolve_plan(request.args.get("plan"))
+    session["oauth_remember"] = "1" if _to_bool(request.args.get("remember")) else "0"
     return oauth.google.authorize_redirect(
         redirect_uri=url_for("google_callback", _external=True)
     )
@@ -699,6 +718,7 @@ def github_login():
     session["oauth_next"] = _safe_next_url(request.args.get("next")) or ""
     session["oauth_intent"] = (request.args.get("intent") or "login").strip().lower()
     session["oauth_plan"] = _resolve_plan(request.args.get("plan"))
+    session["oauth_remember"] = "1" if _to_bool(request.args.get("remember")) else "0"
     return oauth.github.authorize_redirect(
         redirect_uri=url_for("github_callback", _external=True)
     )
@@ -733,8 +753,9 @@ def github_callback():
 @app.route("/logout")
 @login_required
 def logout():
+    provider = (session.get("oauth_provider") or "").strip().lower()
     session.clear()
-    if Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID:
+    if provider == "auth0" and Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID:
         params = {
             "returnTo": url_for("landing", _external=True),
             "client_id": Config.AUTH0_CLIENT_ID,

@@ -67,13 +67,13 @@
 }
 
 body[data-theme="dark"] .workspace-main::before {
-    background: linear-gradient(140deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.05));
+    background: linear-gradient(140deg, rgba(59, 130, 246, 0.07), rgba(20, 184, 166, 0.04));
 }
 
 body[data-theme="dark"] .trust-badges span {
-    color: #c7d2fe;
+    color: #cdd9ea;
 }
 
 body[data-theme="dark"] .study-progress-fill {
-    box-shadow: 0 0 14px rgba(37, 99, 235, 0.5);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
 }

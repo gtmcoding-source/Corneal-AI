@@ -1,14 +1,22 @@
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+_remember_days_raw = (os.getenv("REMEMBER_ME_DAYS", "30") or "30").strip()
+try:
+    _remember_days = max(1, int(_remember_days_raw))
+except ValueError:
+    _remember_days = 30
 
 class Config:
     SECRET_KEY = os.getenv("APP_SECRET_KEY") or os.getenv("SECRET_KEY", "super-secret-key-change-me")
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
+    PERMANENT_SESSION_LIFETIME = timedelta(days=_remember_days)
     
     # Database Config
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///database.db")

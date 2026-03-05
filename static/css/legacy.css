@@ -1986,18 +1986,18 @@ body.landing-shell {
 }
 
 body[data-theme="dark"] {
-    --bg: #061220;
-    --bg-2: #0a1727;
-    --ink: #e2e8f0;
-    --muted: #94a3b8;
-    --line: rgba(148, 163, 184, 0.26);
-    --panel: rgba(12, 24, 38, 0.92);
-    --shadow: 0 14px 28px rgba(2, 6, 23, 0.48);
+    --bg: #0b1220;
+    --bg-2: #111827;
+    --ink: #e6edf7;
+    --muted: #b7c3d6;
+    --line: rgba(148, 163, 184, 0.2);
+    --panel: rgba(17, 24, 39, 0.88);
+    --shadow: 0 12px 24px rgba(2, 6, 23, 0.36);
     color: var(--ink);
     background:
-        radial-gradient(circle at 8% 6%, rgba(56, 189, 248, 0.18), rgba(56, 189, 248, 0) 34%),
-        radial-gradient(circle at 92% 10%, rgba(37, 99, 235, 0.18), rgba(37, 99, 235, 0) 32%),
-        linear-gradient(165deg, #020817 0%, #0b1526 48%, #111b2d 100%);
+        radial-gradient(circle at 8% 6%, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0) 34%),
+        radial-gradient(circle at 92% 10%, rgba(20, 184, 166, 0.08), rgba(20, 184, 166, 0) 32%),
+        linear-gradient(165deg, #0b1220 0%, #111827 52%, #172033 100%);
 }
 
 body[data-theme="dark"] .panel,
@@ -2013,27 +2013,27 @@ body[data-theme="dark"] .dashboard-kpi-card,
 body[data-theme="dark"] .pricing-table th,
 body[data-theme="dark"] .pricing-table td,
 body[data-theme="dark"] .mermaid {
-    background: rgba(12, 24, 38, 0.94);
+    background: rgba(17, 24, 39, 0.9);
     color: var(--ink);
-    border-color: rgba(148, 163, 184, 0.24);
+    border-color: rgba(148, 163, 184, 0.2);
 }
 
 body[data-theme="dark"] .theme-toggle-btn {
-    background: rgba(30, 41, 59, 0.86);
-    color: #bfdbfe;
-    border-color: rgba(148, 163, 184, 0.3);
+    background: rgba(30, 41, 59, 0.8);
+    color: #dbe7f5;
+    border-color: rgba(148, 163, 184, 0.24);
 }
 
 body[data-theme="dark"] .sidebar-link {
-    background: rgba(15, 23, 42, 0.86);
-    color: #cbd5e1;
-    border-color: rgba(148, 163, 184, 0.22);
+    background: rgba(15, 23, 42, 0.78);
+    color: #d5e0ef;
+    border-color: rgba(148, 163, 184, 0.2);
 }
 
 body[data-theme="dark"] .sidebar-link-active {
-    background: rgba(30, 58, 138, 0.42);
-    color: #bfdbfe;
-    border-color: rgba(96, 165, 250, 0.45);
+    background: rgba(30, 64, 175, 0.3);
+    color: #dbeafe;
+    border-color: rgba(96, 165, 250, 0.34);
 }
 
 body[data-theme="dark"] .note-section-card summary {
@@ -2045,8 +2045,8 @@ body[data-theme="dark"] .sticky-pdf-btn {
 }
 
 body[data-theme="dark"] .mesh-bg {
-    filter: blur(18px) saturate(105%);
-    opacity: 0.68;
+    filter: blur(18px) saturate(88%);
+    opacity: 0.45;
 }
 
 body[data-theme="dark"] .glass-panel,
@@ -2057,6 +2057,6 @@ body[data-theme="dark"] .app-sidebar,
 body[data-theme="dark"] .trust-badges span,
 body[data-theme="dark"] .dashboard-preview,
 body[data-theme="dark"] .preview-card {
-    border-color: rgba(148, 163, 184, 0.28);
-    background: rgba(15, 23, 42, 0.62);
+    border-color: rgba(148, 163, 184, 0.22);
+    background: rgba(17, 24, 39, 0.68);
 }

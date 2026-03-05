@@ -108,3 +108,11 @@ body[data-theme="dark"] .landing-topbar,
 body[data-theme="dark"] .workspace-topbar {
     background: rgba(15, 23, 42, 0.72);
 }
+
+body[data-theme="dark"] .link-pill-primary,
+body[data-theme="dark"] .hero-cta,
+body[data-theme="dark"] button,
+body[data-theme="dark"] .theme-toggle-btn {
+    background: linear-gradient(120deg, #2563eb 0%, #1d4ed8 50%, #0f766e 100%);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.38);
+}

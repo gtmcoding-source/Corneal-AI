@@ -89,15 +89,15 @@ body[data-theme="dark"] .business-hero > div h2 {
 }
 
 body[data-theme="dark"] .landing-shell::before {
-    opacity: 0.8;
+    opacity: 0.45;
 }
 
 body[data-theme="dark"] .landing-shell::after {
-    opacity: 0.72;
+    opacity: 0.4;
 }
 
 body[data-theme="dark"] .hero-badges span,
 body[data-theme="dark"] .brand-strip p,
 body[data-theme="dark"] .trust-strip p {
-    background: rgba(15, 23, 42, 0.56);
+    background: rgba(17, 24, 39, 0.72);
 }
