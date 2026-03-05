@@ -30,10 +30,10 @@
             {% endif %}
             <form class="auth-form" action="{{ url_for('register') }}" method="POST">
                 <input type="hidden" name="plan" value="{{ selected_plan or 'starter' }}">
-                <input type="text" name="username" placeholder="Username (optional)">
-                <input type="email" name="email" placeholder="Email (optional)">
-                <input type="tel" name="mobile" placeholder="Mobile phone (10-15 digits, optional)">
-                <input type="password" name="password" placeholder="Password" required>
+                <input type="text" name="username" placeholder="Username" autocomplete="username" required>
+                <input type="email" name="email" placeholder="Email (optional)" autocomplete="email">
+                <input type="tel" name="mobile" placeholder="Mobile phone (10-15 digits, optional)" autocomplete="tel" inputmode="numeric">
+                <input type="password" name="password" placeholder="Password" autocomplete="new-password" required>
                 <button type="submit">Register and Continue</button>
             </form>
             <p class="subtitle">Selected plan: <strong>{{ (selected_plan or 'starter').title() }}</strong></p>

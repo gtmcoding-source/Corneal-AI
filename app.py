@@ -492,15 +492,14 @@ def register():
 
         if not password:
             return render_template("register.html", error="Password is required.", selected_plan=selected_plan), 400
+        if not username:
+            return render_template("register.html", error="Username is required.", selected_plan=selected_plan), 400
         if not is_strong_password(password):
             return render_template(
                 "register.html",
                 error="Use a strong password with at least 8 characters, including uppercase, lowercase, and a number.",
                 selected_plan=selected_plan,
             ), 400
-
-        if not username and not email and not mobile:
-            return render_template("register.html", error="Add username, email, or mobile to register.", selected_plan=selected_plan), 400
 
         if mobile and not is_valid_mobile(mobile):
             return render_template("register.html", error="Use a valid mobile number (10 to 15 digits).", selected_plan=selected_plan), 400
@@ -512,8 +511,6 @@ def register():
         if mobile and User.query.filter_by(mobile=mobile).first():
             return render_template("register.html", error="Mobile number already exists.", selected_plan=selected_plan), 409
 
-        if not username:
-            username = email or mobile
         username = re.sub(r"\s+", "_", username.strip())
 
         # Hash password for security
