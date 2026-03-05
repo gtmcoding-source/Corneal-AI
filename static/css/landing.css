@@ -13,19 +13,23 @@
     display: grid;
     place-items: center;
     background:
-        radial-gradient(circle at 20% 15%, rgba(37, 99, 235, 0.2), transparent 44%),
-        radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.16), transparent 42%),
-        linear-gradient(180deg, #f8fbff 0%, #eef3ff 100%);
+        radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.16), transparent 34%),
+        radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.2), transparent 44%),
+        radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.34), transparent 42%),
+        linear-gradient(180deg, #05091c 0%, #081132 48%, #05091c 100%);
     opacity: 1;
     visibility: visible;
     transition: opacity 520ms ease, visibility 520ms ease;
+    animation: introOverlayExit 2100ms ease forwards;
 }
 
 .site-intro-logo {
-    width: min(58vw, 360px);
-    max-width: 88vw;
+    width: min(82vw, 620px);
+    max-width: 92vw;
+    max-height: 86vh;
     height: auto;
-    filter: drop-shadow(0 14px 34px rgba(37, 99, 235, 0.24));
+    object-fit: contain;
+    filter: drop-shadow(0 18px 38px rgba(0, 217, 255, 0.2));
     transform: scale(0.74);
     opacity: 0.18;
     animation: introLogoZoom 1400ms var(--ease-premium) forwards;
@@ -129,9 +133,10 @@ body[data-theme="dark"] .landing-shell::before {
 
 body[data-theme="dark"] .site-intro {
     background:
-        radial-gradient(circle at 20% 15%, rgba(59, 130, 246, 0.24), transparent 44%),
-        radial-gradient(circle at 80% 20%, rgba(20, 184, 166, 0.18), transparent 42%),
-        linear-gradient(180deg, #0b1220 0%, #111a2f 100%);
+        radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.16), transparent 34%),
+        radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.2), transparent 44%),
+        radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.34), transparent 42%),
+        linear-gradient(180deg, #05091c 0%, #081132 48%, #05091c 100%);
 }
 
 body[data-theme="dark"] .landing-shell::after {
@@ -156,6 +161,19 @@ body[data-theme="dark"] .trust-strip p {
     100% {
         transform: scale(1);
         opacity: 0.96;
+    }
+}
+
+@keyframes introOverlayExit {
+    0%,
+    74% {
+        opacity: 1;
+        visibility: visible;
+    }
+    100% {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
     }
 }
 

@@ -8,8 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const hideIntro = () => {
             intro.classList.add("is-hidden");
             body.classList.remove("intro-lock");
+            window.setTimeout(() => {
+                if (intro.parentNode) {
+                    intro.parentNode.removeChild(intro);
+                }
+            }, 700);
         };
         window.setTimeout(hideIntro, 1700);
+        intro.addEventListener("animationend", hideIntro, { once: true });
     }
 
     const syncScrollState = () => {
