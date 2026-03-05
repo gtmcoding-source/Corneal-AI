@@ -11,12 +11,20 @@ try:
 except ValueError:
     _remember_days = 30
 
+_admin_log_tail_raw = (os.getenv("ADMIN_LOG_TAIL_LINES", "200") or "200").strip()
+try:
+    _admin_log_tail_lines = max(50, int(_admin_log_tail_raw))
+except ValueError:
+    _admin_log_tail_lines = 200
+
 class Config:
     SECRET_KEY = os.getenv("APP_SECRET_KEY") or os.getenv("SECRET_KEY", "super-secret-key-change-me")
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
     PERMANENT_SESSION_LIFETIME = timedelta(days=_remember_days)
+    ADMIN_LOG_FILE = os.getenv("ADMIN_LOG_FILE", "").strip()
+    ADMIN_LOG_TAIL_LINES = _admin_log_tail_lines
     
     # Database Config
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///database.db")

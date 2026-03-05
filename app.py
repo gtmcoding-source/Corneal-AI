@@ -1,6 +1,9 @@
 from functools import wraps
 from datetime import datetime, date, timedelta
+import os
 import re
+import logging
+from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode, quote_plus
 
 from flask import Flask, render_template, request, redirect, url_for, session, send_file
@@ -8,7 +11,7 @@ from authlib.integrations.flask_client import OAuth
 from sqlalchemy import inspect, or_, text, func
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
-from database.models import db, User, Notes, Lead
+from database.models import db, User, Notes, Lead, LoginEvent
 from utils.ai_handler import generate_notes, transform_notes, TRANSFORM_ACTIONS, generate_study_plan
 from utils.helpers import generate_pdf, markdown_to_html
 from utils.source_ingestion import build_source_bundle
@@ -16,6 +19,19 @@ from utils.source_ingestion import build_source_bundle
 app = Flask(__name__)
 app.config.from_object(Config)
 oauth = OAuth(app)
+
+if not os.path.isdir(app.instance_path):
+    os.makedirs(app.instance_path, exist_ok=True)
+
+ADMIN_LOG_PATH = Config.ADMIN_LOG_FILE or os.path.join(app.instance_path, "app.log")
+if not any(isinstance(handler, RotatingFileHandler) for handler in app.logger.handlers):
+    file_handler = RotatingFileHandler(ADMIN_LOG_PATH, maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s")
+    )
+    app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
 
 # Initialize database with app context
 db.init_app(app)
@@ -77,10 +93,17 @@ if Config.GITHUB_CLIENT_ID and Config.GITHUB_CLIENT_SECRET:
 
 @app.context_processor
 def inject_oauth_provider_flags():
+    current_user = None
+    user_id = session.get("user_id")
+    if user_id:
+        current_user = User.query.get(user_id)
+
     return {
         "google_oauth_enabled": bool(Config.GOOGLE_CLIENT_ID and Config.GOOGLE_CLIENT_SECRET),
         "github_oauth_enabled": bool(Config.GITHUB_CLIENT_ID and Config.GITHUB_CLIENT_SECRET),
         "auth0_oauth_enabled": bool(Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID and Config.AUTH0_CLIENT_SECRET),
+        "current_user": current_user,
+        "is_admin_user": bool(current_user and current_user.username == "admin"),
     }
 
 
@@ -177,6 +200,59 @@ def _to_bool(value):
     return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _get_current_user():
+    user_id = session.get("user_id")
+    if not user_id:
+        return None
+    return User.query.get(user_id)
+
+
+def _is_admin_user():
+    user = _get_current_user()
+    return bool(user and user.username == "admin")
+
+
+def _extract_client_ip():
+    forwarded_for = (request.headers.get("X-Forwarded-For") or "").strip()
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+    return (request.headers.get("X-Real-IP") or request.remote_addr or "").strip() or None
+
+
+def _record_login_event(user, provider):
+    if not user:
+        return
+
+    entry = LoginEvent(
+        user_id=user.id,
+        username=user.username,
+        provider=(provider or "local").strip().lower(),
+        ip_address=_extract_client_ip(),
+        user_agent=(request.user_agent.string or "")[:255] or None,
+    )
+    db.session.add(entry)
+    db.session.commit()
+    app.logger.info(
+        "login user=%s provider=%s ip=%s",
+        user.username,
+        entry.provider,
+        entry.ip_address or "unknown",
+    )
+
+
+def _tail_admin_logs(path, max_lines):
+    if not path or not os.path.exists(path):
+        return []
+
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as stream:
+            lines = stream.readlines()
+    except OSError:
+        return []
+
+    return [line.rstrip() for line in lines[-max_lines:] if line.strip()]
+
+
 def _safe_next_url(next_url):
     if not next_url:
         return None
@@ -202,6 +278,22 @@ def login_required(view_func):
     def wrapped_view(*args, **kwargs):
         if "user_id" not in session:
             return redirect(url_for("login", next=request.path))
+        return view_func(*args, **kwargs)
+    return wrapped_view
+
+
+def admin_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login", next=request.path))
+        if not _is_admin_user():
+            return render_template(
+                "error.html",
+                error_code=403,
+                error_title="Forbidden",
+                error_copy="Admin access is only available for username 'admin'.",
+            ), 403
         return view_func(*args, **kwargs)
     return wrapped_view
 
@@ -375,6 +467,70 @@ def dashboard():
         streak_count=streak_count,
         progress_percent=progress_percent,
         latest_note=latest_note,
+    )
+
+
+@app.route("/admin/dashboard")
+@admin_required
+def admin_dashboard():
+    total_users = User.query.count()
+    total_notes = Notes.query.count()
+    total_logins = LoginEvent.query.count()
+
+    last_14_days = [date.today() - timedelta(days=offset) for offset in range(13, -1, -1)]
+    day_buckets = {day.isoformat(): 0 for day in last_14_days}
+    login_rows = (
+        db.session.query(func.date(LoginEvent.created_at), func.count(LoginEvent.id))
+        .filter(LoginEvent.created_at >= datetime.utcnow() - timedelta(days=14))
+        .group_by(func.date(LoginEvent.created_at))
+        .all()
+    )
+    for day_value, count_value in login_rows:
+        if isinstance(day_value, str):
+            key = day_value.strip()
+        elif hasattr(day_value, "isoformat"):
+            key = day_value.isoformat()
+        else:
+            key = ""
+        if key in day_buckets:
+            day_buckets[key] = int(count_value or 0)
+
+    provider_rows = (
+        db.session.query(LoginEvent.provider, func.count(LoginEvent.id))
+        .group_by(LoginEvent.provider)
+        .order_by(func.count(LoginEvent.id).desc())
+        .all()
+    )
+    provider_labels = [(provider or "unknown").title() for provider, _ in provider_rows]
+    provider_counts = [int(count or 0) for _, count in provider_rows]
+
+    top_user_rows = (
+        db.session.query(LoginEvent.username, func.count(LoginEvent.id))
+        .group_by(LoginEvent.username)
+        .order_by(func.count(LoginEvent.id).desc())
+        .limit(10)
+        .all()
+    )
+    top_user_labels = [username for username, _ in top_user_rows]
+    top_user_counts = [int(count or 0) for _, count in top_user_rows]
+
+    recent_events = LoginEvent.query.order_by(LoginEvent.created_at.desc()).limit(200).all()
+    log_lines = _tail_admin_logs(ADMIN_LOG_PATH, Config.ADMIN_LOG_TAIL_LINES)
+
+    return render_template(
+        "admin_dashboard.html",
+        total_users=total_users,
+        total_notes=total_notes,
+        total_logins=total_logins,
+        login_day_labels=[day.strftime("%d %b") for day in last_14_days],
+        login_day_counts=[day_buckets[day.isoformat()] for day in last_14_days],
+        provider_labels=provider_labels,
+        provider_counts=provider_counts,
+        top_user_labels=top_user_labels,
+        top_user_counts=top_user_counts,
+        recent_events=recent_events,
+        log_lines=log_lines,
+        admin_log_path=ADMIN_LOG_PATH,
     )
 
 
@@ -563,6 +719,7 @@ def login():
             session.clear()
             session.permanent = remember_me
             session["user_id"] = user.id
+            _record_login_event(user, "local")
             return redirect(safe_next or url_for("home"))
 
         return render_template("login.html", error="Invalid credentials.", next_url=safe_next, remember_me=remember_me), 401
@@ -642,6 +799,7 @@ def _login_oauth_user(provider_name, provider_sub, email=None, display_name=None
     session.permanent = oauth_remember
     session["user_id"] = user.id
     session["oauth_provider"] = provider_name
+    _record_login_event(user, provider_name)
 
     if oauth_intent == "register":
         user.plan = oauth_plan

@@ -1,0 +1,7 @@
+2026-03-05 13:03:52,680 INFO [app] OAuth provider flags at startup: google=True github=True auth0=True
+2026-03-05 13:04:12,641 INFO [app] OAuth provider flags at startup: google=True github=True auth0=True
+2026-03-05 13:04:32,107 INFO [app] OAuth provider flags at startup: google=True github=True auth0=True
+2026-03-05 13:05:22,576 INFO [app] OAuth provider flags at startup: google=True github=True auth0=True
+2026-03-05 13:05:31,433 INFO [app] login user=normal_user_check provider=local ip=127.0.0.1
+2026-03-05 13:05:34,389 INFO [app] login user=admin provider=local ip=127.0.0.1
+2026-03-05 13:07:43,329 INFO [app] OAuth provider flags at startup: google=True github=True auth0=True

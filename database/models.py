@@ -35,3 +35,13 @@ class Lead(db.Model):
     message = db.Column(db.Text, nullable=False)
     source = db.Column(db.String(60), nullable=False, default="website")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class LoginEvent(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    username = db.Column(db.String(100), nullable=False, index=True)
+    provider = db.Column(db.String(30), nullable=False, default="local")
+    ip_address = db.Column(db.String(64), nullable=True)
+    user_agent = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)

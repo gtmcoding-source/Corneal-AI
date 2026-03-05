@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Corneal AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-shell">
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <div class="shape-3d shape-3d-a" aria-hidden="true"></div>
+    <div class="shape-3d shape-3d-b" aria-hidden="true"></div>
+    <div class="shape-3d shape-3d-c" aria-hidden="true"></div>
+    <div class="workspace-shell">
+        {% include "partials/app_sidebar.html" %}
+        <main class="workspace-main">
+            <header class="workspace-topbar">
+                <div>
+                    <p class="eyebrow">Admin Control</p>
+                    <h1>Admin Dashboard</h1>
+                    <p class="subtitle">Access restricted to username <strong>admin</strong>. Login activity and system logs are shown below.</p>
+                </div>
+                <div class="quick-actions">
+                    <a class="link-pill" href="{{ url_for('dashboard') }}">User Dashboard</a>
+                    <a class="link-pill link-pill-primary" href="{{ url_for('home') }}">Generate Notes</a>
+                </div>
+            </header>
+
+            <section class="dashboard-kpi-grid">
+                <article class="dashboard-kpi-card">
+                    <p class="kpi-label">Total Users</p>
+                    <p class="kpi-value">{{ total_users }}</p>
+                </article>
+                <article class="dashboard-kpi-card">
+                    <p class="kpi-label">Total Logins</p>
+                    <p class="kpi-value">{{ total_logins }}</p>
+                </article>
+                <article class="dashboard-kpi-card">
+                    <p class="kpi-label">Total Notes</p>
+                    <p class="kpi-value">{{ total_notes }}</p>
+                </article>
+                <article class="dashboard-kpi-card">
+                    <p class="kpi-label">Log File</p>
+                    <p class="subtitle">{{ admin_log_path }}</p>
+                </article>
+            </section>
+
+            <section class="dashboard-main-grid">
+                <article class="panel dashboard-card">
+                    <h3>Logins (Last 14 Days)</h3>
+                    <canvas id="loginTrendChart" height="110"></canvas>
+                </article>
+
+                <article class="panel dashboard-card">
+                    <h3>Login Provider Split</h3>
+                    <canvas id="providerChart" height="110"></canvas>
+                </article>
+            </section>
+
+            <section class="dashboard-main-grid">
+                <article class="panel dashboard-card">
+                    <h3>Top Active Users</h3>
+                    <canvas id="topUsersChart" height="120"></canvas>
+                </article>
+            </section>
+
+            <section class="panel dashboard-card">
+                <h3>Recent Login Events</h3>
+                <div style="overflow-x:auto;">
+                    <table class="pricing-table">
+                        <thead>
+                            <tr>
+                                <th>Time (UTC)</th>
+                                <th>Username</th>
+                                <th>Provider</th>
+                                <th>IP</th>
+                                <th>User Agent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in recent_events %}
+                                <tr>
+                                    <td>{{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') if event.created_at else '-' }}</td>
+                                    <td>{{ event.username }}</td>
+                                    <td>{{ event.provider }}</td>
+                                    <td>{{ event.ip_address or '-' }}</td>
+                                    <td>{{ event.user_agent or '-' }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5">No login events yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel dashboard-card">
+                <h3>Application Logs</h3>
+                <div class="note-content" style="max-height:420px; overflow:auto; white-space:pre-wrap; font-family:Consolas, monospace; font-size:0.85rem;">
+{% if log_lines %}{{ log_lines|join('\n') }}{% else %}No logs available yet.{% endif %}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartTextColor = document.body.getAttribute("data-theme") === "dark" ? "#d5e0ef" : "#334155";
+        const chartGridColor = document.body.getAttribute("data-theme") === "dark" ? "rgba(148, 163, 184, 0.2)" : "rgba(51, 65, 85, 0.15)";
+
+        const loginTrendCtx = document.getElementById("loginTrendChart");
+        if (loginTrendCtx) {
+            new Chart(loginTrendCtx, {
+                type: "line",
+                data: {
+                    labels: {{ login_day_labels|tojson }},
+                    datasets: [{
+                        label: "Logins",
+                        data: {{ login_day_counts|tojson }},
+                        borderColor: "#2563eb",
+                        backgroundColor: "rgba(37, 99, 235, 0.15)",
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: chartTextColor } }
+                    },
+                    scales: {
+                        x: { ticks: { color: chartTextColor }, grid: { color: chartGridColor } },
+                        y: { ticks: { color: chartTextColor }, grid: { color: chartGridColor }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        const providerCtx = document.getElementById("providerChart");
+        if (providerCtx) {
+            new Chart(providerCtx, {
+                type: "doughnut",
+                data: {
+                    labels: {{ provider_labels|tojson }},
+                    datasets: [{
+                        data: {{ provider_counts|tojson }},
+                        backgroundColor: ["#2563eb", "#0ea5e9", "#14b8a6", "#22c55e", "#f59e0b", "#ef4444"]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: chartTextColor } }
+                    }
+                }
+            });
+        }
+
+        const topUsersCtx = document.getElementById("topUsersChart");
+        if (topUsersCtx) {
+            new Chart(topUsersCtx, {
+                type: "bar",
+                data: {
+                    labels: {{ top_user_labels|tojson }},
+                    datasets: [{
+                        label: "Login Count",
+                        data: {{ top_user_counts|tojson }},
+                        backgroundColor: "rgba(14, 165, 233, 0.65)",
+                        borderColor: "#0284c7",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: chartTextColor } }
+                    },
+                    scales: {
+                        x: { ticks: { color: chartTextColor }, grid: { color: chartGridColor }, beginAtZero: true },
+                        y: { ticks: { color: chartTextColor }, grid: { color: chartGridColor } }
+                    }
+                }
+            });
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}" defer></script>
+</body>
+</html>
