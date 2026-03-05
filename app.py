@@ -3,15 +3,17 @@ from datetime import datetime, date, timedelta
 import os
 import re
 import logging
+import secrets
 from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode, quote_plus
 
 from flask import Flask, render_template, request, redirect, url_for, session, send_file
 from authlib.integrations.flask_client import OAuth
+from flask_mail import Mail, Message
 from sqlalchemy import inspect, or_, text, func
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
-from database.models import db, User, Notes, Lead, LoginEvent
+from database.models import db, User, Notes, Lead, LoginEvent, PasswordResetOTP
 from utils.ai_handler import generate_notes, transform_notes, TRANSFORM_ACTIONS, generate_study_plan
 from utils.helpers import generate_pdf, markdown_to_html
 from utils.source_ingestion import build_source_bundle
@@ -19,6 +21,7 @@ from utils.source_ingestion import build_source_bundle
 app = Flask(__name__)
 app.config.from_object(Config)
 oauth = OAuth(app)
+mail = Mail(app)
 
 if not os.path.isdir(app.instance_path):
     os.makedirs(app.instance_path, exist_ok=True)
@@ -259,6 +262,69 @@ def _safe_next_url(next_url):
     if next_url.startswith("/") and not next_url.startswith("//"):
         return next_url
     return None
+
+
+def _find_user_by_identifier(identifier):
+    raw_identifier = (identifier or "").strip()
+    if not raw_identifier:
+        return None
+
+    lowered_identifier = raw_identifier.lower()
+    mobile_identifier = normalize_mobile(raw_identifier)
+
+    conditions = [User.username == raw_identifier]
+    if lowered_identifier != raw_identifier:
+        conditions.append(User.username == lowered_identifier)
+    if "@" in raw_identifier:
+        conditions.append(User.email == lowered_identifier)
+    if mobile_identifier:
+        conditions.append(User.mobile == mobile_identifier)
+
+    return User.query.filter(or_(*conditions)).first()
+
+
+def _mask_email(email):
+    value = (email or "").strip()
+    if "@" not in value:
+        return value
+    name, domain = value.split("@", 1)
+    if len(name) <= 2:
+        name_masked = name[0] + "*" if name else "*"
+    else:
+        name_masked = name[0] + ("*" * (len(name) - 2)) + name[-1]
+    return f"{name_masked}@{domain}"
+
+
+def _active_reset_otp_for_user(user_id):
+    return (
+        PasswordResetOTP.query.filter(
+            PasswordResetOTP.user_id == user_id,
+            PasswordResetOTP.used_at.is_(None),
+            PasswordResetOTP.expires_at >= datetime.utcnow(),
+        )
+        .order_by(PasswordResetOTP.created_at.desc())
+        .first()
+    )
+
+
+def _send_password_reset_otp(email, otp_code):
+    if not (Config.MAIL_SERVER and Config.MAIL_PORT and Config.MAIL_DEFAULT_SENDER):
+        app.logger.warning("Password reset email not sent: mail config missing.")
+        return False
+    try:
+        message = Message(
+            subject="Your Corneal AI password reset OTP",
+            recipients=[email],
+            body=(
+                f"Your OTP is {otp_code}. It expires in {Config.PASSWORD_RESET_OTP_MINUTES} minutes.\n\n"
+                "If you did not request this reset, ignore this email."
+            ),
+        )
+        mail.send(message)
+        return True
+    except Exception as exc:
+        app.logger.exception("Password reset email failed: %s", exc)
+        return False
 
 
 def build_unique_username(seed):
@@ -702,18 +768,7 @@ def login():
         if not identifier or not password:
             return render_template("login.html", error="Identifier and password are required.", next_url=safe_next, remember_me=remember_me), 400
 
-        lowered_identifier = identifier.lower()
-        mobile_identifier = normalize_mobile(identifier)
-
-        conditions = [User.username == identifier]
-        if lowered_identifier != identifier:
-            conditions.append(User.username == lowered_identifier)
-        if "@" in identifier:
-            conditions.append(User.email == lowered_identifier)
-        if mobile_identifier:
-            conditions.append(User.mobile == mobile_identifier)
-
-        user = User.query.filter(or_(*conditions)).first()
+        user = _find_user_by_identifier(identifier)
 
         if user and check_password_hash(user.password, password):
             session.clear()
@@ -723,7 +778,117 @@ def login():
             return redirect(safe_next or url_for("home"))
 
         return render_template("login.html", error="Invalid credentials.", next_url=safe_next, remember_me=remember_me), 401
-    return render_template("login.html", next_url=safe_next, remember_me=False)
+    success = "Password reset successful. Please login with your new password." if request.args.get("reset") == "1" else None
+    return render_template("login.html", next_url=safe_next, remember_me=False, success=success)
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    stage = (request.values.get("stage") or "request").strip().lower()
+    if stage not in {"request", "verify", "reset"}:
+        stage = "request"
+
+    error = None
+    success = None
+    email_hint = session.get("password_reset_email_hint")
+
+    if request.method == "GET" and stage == "request":
+        session.pop("password_reset_user_id", None)
+        session.pop("password_reset_verified_user_id", None)
+        session.pop("password_reset_email_hint", None)
+        email_hint = None
+
+    if request.method == "POST":
+        if stage == "request":
+            identifier = request.form.get("identifier", "").strip()
+            user = _find_user_by_identifier(identifier)
+            if not identifier:
+                error = "Username, email, or mobile is required."
+            elif not user:
+                error = "No account found for that identifier."
+            elif not user.email:
+                error = "No email is linked to this account. Contact support."
+            else:
+                otp_code = f"{secrets.randbelow(1_000_000):06d}"
+                otp_entry = PasswordResetOTP(
+                    user_id=user.id,
+                    otp_hash=generate_password_hash(otp_code, method="pbkdf2:sha256"),
+                    expires_at=datetime.utcnow() + timedelta(minutes=Config.PASSWORD_RESET_OTP_MINUTES),
+                )
+                db.session.add(otp_entry)
+                db.session.commit()
+
+                sent = _send_password_reset_otp(user.email, otp_code)
+                if not sent:
+                    error = "Could not send OTP email. Check mail configuration and try again."
+                else:
+                    session["password_reset_user_id"] = user.id
+                    session["password_reset_email_hint"] = _mask_email(user.email)
+                    email_hint = session["password_reset_email_hint"]
+                    stage = "verify"
+                    success = f"OTP sent to {email_hint}. It expires in {Config.PASSWORD_RESET_OTP_MINUTES} minutes."
+
+        elif stage == "verify":
+            otp_code = request.form.get("otp_code", "").strip()
+            user_id = session.get("password_reset_user_id")
+            if not user_id:
+                error = "Reset session expired. Request a new OTP."
+                stage = "request"
+            elif not otp_code or len(otp_code) != 6 or not otp_code.isdigit():
+                error = "Enter a valid 6-digit OTP."
+            else:
+                otp_entry = _active_reset_otp_for_user(user_id)
+                if not otp_entry:
+                    error = "OTP expired or missing. Request a new OTP."
+                    stage = "request"
+                elif otp_entry.attempts >= Config.PASSWORD_RESET_MAX_ATTEMPTS:
+                    error = "Too many attempts. Request a new OTP."
+                    stage = "request"
+                elif check_password_hash(otp_entry.otp_hash, otp_code):
+                    otp_entry.used_at = datetime.utcnow()
+                    db.session.commit()
+                    session["password_reset_verified_user_id"] = user_id
+                    session.pop("password_reset_user_id", None)
+                    stage = "reset"
+                    success = "OTP verified. Set your new password."
+                else:
+                    otp_entry.attempts += 1
+                    db.session.commit()
+                    remaining = max(0, Config.PASSWORD_RESET_MAX_ATTEMPTS - otp_entry.attempts)
+                    error = f"Invalid OTP. {remaining} attempt(s) remaining."
+
+        elif stage == "reset":
+            user_id = session.get("password_reset_verified_user_id")
+            new_password = request.form.get("new_password", "").strip()
+            confirm_password = request.form.get("confirm_password", "").strip()
+            if not user_id:
+                error = "Reset session expired. Verify OTP again."
+                stage = "request"
+            elif not new_password:
+                error = "New password is required."
+            elif not is_strong_password(new_password):
+                error = "Use a strong password with at least 8 characters, including uppercase, lowercase, and a number."
+            elif new_password != confirm_password:
+                error = "New password and confirm password do not match."
+            else:
+                user = User.query.get(user_id)
+                if not user:
+                    error = "User not found. Try again."
+                    stage = "request"
+                else:
+                    user.password = generate_password_hash(new_password, method="pbkdf2:sha256")
+                    db.session.commit()
+                    session.pop("password_reset_verified_user_id", None)
+                    session.pop("password_reset_email_hint", None)
+                    return redirect(url_for("login", reset="1"))
+
+    return render_template(
+        "forgot_password.html",
+        stage=stage,
+        error=error,
+        success=success,
+        email_hint=email_hint,
+    )
 
 @app.route("/login/oauth/<provider>")
 def oauth_login(provider):

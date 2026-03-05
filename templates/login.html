@@ -16,6 +16,9 @@
             {% if error %}
                 <p class="error-message">{{ error }}</p>
             {% endif %}
+            {% if success %}
+                <p class="success-message">{{ success }}</p>
+            {% endif %}
 
             {% if google_oauth_enabled or github_oauth_enabled or auth0_oauth_enabled %}
                 <div class="oauth-row">
@@ -43,6 +46,7 @@
                 </label>
                 <button type="submit">Login</button>
             </form>
+            <p class="auth-switch"><a href="{{ url_for('forgot_password') }}">Forgot password?</a></p>
 
             <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
         </section>

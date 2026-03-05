@@ -15,7 +15,7 @@
         <a class="sidebar-link" href="{{ url_for('home') }}#study-planner">Planner</a>
         <a class="sidebar-link" href="{{ url_for('dashboard') }}#progress">Progress</a>
         <a class="sidebar-link" href="{{ url_for('pricing') }}">Pricing</a>
-        {% if is_admin_user %}
+        {% if current_user and current_user.username == "admin" %}
             <a class="sidebar-link" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
         {% endif %}
     </nav>

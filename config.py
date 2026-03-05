@@ -17,6 +17,17 @@ try:
 except ValueError:
     _admin_log_tail_lines = 200
 
+
+def _int_env(name, default, minimum=None):
+    raw = (os.getenv(name, str(default)) or str(default)).strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        value = int(default)
+    if minimum is not None:
+        return max(minimum, value)
+    return value
+
 class Config:
     SECRET_KEY = os.getenv("APP_SECRET_KEY") or os.getenv("SECRET_KEY", "super-secret-key-change-me")
     SESSION_COOKIE_HTTPONLY = True
@@ -50,3 +61,14 @@ class Config:
     STRIPE_CHECKOUT_URL = os.getenv("STRIPE_CHECKOUT_URL", "").strip()
     PAYPAL_CHECKOUT_URL = os.getenv("PAYPAL_CHECKOUT_URL", "").strip()
     RAZORPAY_CHECKOUT_URL = os.getenv("RAZORPAY_CHECKOUT_URL", "").strip()
+
+    # Email/OTP reset config
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "").strip()
+    MAIL_PORT = _int_env("MAIL_PORT", 587, minimum=1)
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "").strip()
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "").strip()
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "true").strip().lower() == "true"
+    MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "false").strip().lower() == "true"
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME).strip()
+    PASSWORD_RESET_OTP_MINUTES = _int_env("PASSWORD_RESET_OTP_MINUTES", 10, minimum=1)
+    PASSWORD_RESET_MAX_ATTEMPTS = _int_env("PASSWORD_RESET_MAX_ATTEMPTS", 5, minimum=1)
