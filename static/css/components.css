@@ -107,6 +107,7 @@ body[data-theme="dark"] .topbar,
 body[data-theme="dark"] .landing-topbar,
 body[data-theme="dark"] .workspace-topbar {
     background: rgba(15, 23, 42, 0.72);
+    border-color: rgba(148, 163, 184, 0.28);
 }
 
 body[data-theme="dark"] .link-pill-primary,
@@ -115,4 +116,118 @@ body[data-theme="dark"] button,
 body[data-theme="dark"] .theme-toggle-btn {
     background: linear-gradient(120deg, #2563eb 0%, #1d4ed8 50%, #0f766e 100%);
     box-shadow: 0 10px 22px rgba(15, 23, 42, 0.38);
+}
+
+body[data-theme="dark"] .link-pill,
+body[data-theme="dark"] .mode-pill {
+    background: rgba(15, 23, 42, 0.8);
+    color: #dbe7f5;
+    border-color: rgba(148, 163, 184, 0.26);
+}
+
+body[data-theme="dark"] .link-pill:hover,
+body[data-theme="dark"] .mode-pill:hover {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(96, 165, 250, 0.4);
+}
+
+body[data-theme="dark"] .mode-pill-active,
+body[data-theme="dark"] .sidebar-link-active {
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.34) inset, 0 8px 16px rgba(15, 23, 42, 0.42);
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea {
+    background: rgba(15, 23, 42, 0.86);
+    color: #e6edf7;
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+body[data-theme="dark"] input::placeholder,
+body[data-theme="dark"] textarea::placeholder {
+    color: #94a3b8;
+}
+
+body[data-theme="dark"] input:focus,
+body[data-theme="dark"] select:focus,
+body[data-theme="dark"] textarea:focus {
+    border-color: rgba(96, 165, 250, 0.52);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+body[data-theme="dark"] .note-section-card,
+body[data-theme="dark"] .note-content,
+body[data-theme="dark"] .notes-display {
+    background: rgba(17, 24, 39, 0.78);
+    border-color: rgba(148, 163, 184, 0.24);
+}
+
+body[data-theme="dark"] .note-section-card summary {
+    background: rgba(30, 41, 59, 0.66);
+    color: #dbe7f5;
+}
+
+body[data-theme="dark"] .note-content table,
+body[data-theme="dark"] .notes-display table,
+body[data-theme="dark"] .pricing-table {
+    background: rgba(15, 23, 42, 0.82);
+    border-color: rgba(148, 163, 184, 0.24);
+}
+
+body[data-theme="dark"] .note-content th,
+body[data-theme="dark"] .note-content td,
+body[data-theme="dark"] .notes-display th,
+body[data-theme="dark"] .notes-display td,
+body[data-theme="dark"] .pricing-table th,
+body[data-theme="dark"] .pricing-table td {
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+body[data-theme="dark"] .toast {
+    background: rgba(15, 23, 42, 0.94);
+    color: #e2e8f0;
+    border: 1px solid rgba(96, 165, 250, 0.28);
+}
+
+body[data-theme="dark"] .popular-col {
+    background: rgba(30, 64, 175, 0.24);
+}
+
+body[data-theme="dark"] details summary {
+    background: rgba(30, 41, 59, 0.62);
+    color: #dbe7f5;
+    border-radius: 10px;
+}
+
+body[data-theme="dark"] details[open] summary {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+body[data-theme="dark"] .source-policy {
+    background: rgba(15, 23, 42, 0.95);
+    color: #dbe7f5;
+    border-color: rgba(96, 165, 250, 0.32);
+}
+
+body[data-theme="dark"] .source-info-icon {
+    background: rgba(30, 41, 59, 0.9);
+    color: #dbe7f5;
+    border-color: rgba(148, 163, 184, 0.28);
+}
+
+body[data-theme="dark"] .source-info-icon:hover {
+    background: rgba(37, 99, 235, 0.3);
+}
+
+body[data-theme="dark"] .site-footer {
+    background: rgba(15, 23, 42, 0.82);
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+body[data-theme="dark"] .site-footer-inner a,
+body[data-theme="dark"] .site-footer-inner p {
+    color: #cbd5e1;
 }

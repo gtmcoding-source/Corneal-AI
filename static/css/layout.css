@@ -41,6 +41,14 @@ body.nav-scrolled .workspace-topbar {
     box-shadow: var(--shadow-sm);
 }
 
+body[data-theme="dark"].nav-scrolled .topbar,
+body[data-theme="dark"].nav-scrolled .landing-topbar,
+body[data-theme="dark"].nav-scrolled .workspace-topbar {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(148, 163, 184, 0.3);
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
+}
+
 .top-actions a,
 .sidebar-nav .sidebar-link {
     position: relative;

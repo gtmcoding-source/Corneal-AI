@@ -77,3 +77,30 @@ body[data-theme="dark"] .trust-badges span {
 body[data-theme="dark"] .study-progress-fill {
     box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
 }
+
+body[data-theme="dark"] .app-sidebar {
+    background: rgba(15, 23, 42, 0.86);
+    border-color: rgba(148, 163, 184, 0.24);
+}
+
+body[data-theme="dark"] .sidebar-link {
+    background: rgba(15, 23, 42, 0.74);
+    color: #dbe7f5;
+    border-color: rgba(148, 163, 184, 0.22);
+}
+
+body[data-theme="dark"] .sidebar-link:hover {
+    background: rgba(30, 41, 59, 0.86);
+    border-color: rgba(96, 165, 250, 0.38);
+}
+
+body[data-theme="dark"] .dashboard-kpi-card {
+    background: rgba(17, 24, 39, 0.78);
+    border-color: rgba(148, 163, 184, 0.22);
+    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.36);
+}
+
+body[data-theme="dark"] .dashboard-kpi-card .kpi-label,
+body[data-theme="dark"] .dashboard-kpi-card .subtitle {
+    color: #b7c3d6;
+}
