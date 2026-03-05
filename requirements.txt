@@ -16,3 +16,4 @@ datetime
 Markdown
 bleach
 youtube-transcript-api
+flask_mail
