@@ -28,6 +28,13 @@ def _int_env(name, default, minimum=None):
         return max(minimum, value)
     return value
 
+
+def _database_url():
+    raw_url = (os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL") or "sqlite:///database.db").strip()
+    if raw_url.startswith("postgres://"):
+        return "postgresql://" + raw_url[len("postgres://"):]
+    return raw_url
+
 class Config:
     SECRET_KEY = os.getenv("APP_SECRET_KEY") or os.getenv("SECRET_KEY", "super-secret-key-change-me")
     SESSION_COOKIE_HTTPONLY = True
@@ -38,7 +45,7 @@ class Config:
     ADMIN_LOG_TAIL_LINES = _admin_log_tail_lines
     
     # Database Config
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///database.db")
+    SQLALCHEMY_DATABASE_URI = _database_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # AI Config (Groq)

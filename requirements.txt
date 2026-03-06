@@ -12,6 +12,7 @@ reportlab
 requests
 flask_sqlalchemy
 flask_migrate
+psycopg2-binary
 datetime
 Markdown
 bleach
