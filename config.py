@@ -1,5 +1,6 @@
 import os
 from datetime import timedelta
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -32,7 +33,19 @@ def _int_env(name, default, minimum=None):
 def _database_url():
     raw_url = (os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL") or "sqlite:///database.db").strip()
     if raw_url.startswith("postgres://"):
-        return "postgresql://" + raw_url[len("postgres://"):]
+        raw_url = "postgresql://" + raw_url[len("postgres://"):]
+
+    # psycopg2 does not accept some provider-specific options such as pgbouncer.
+    if raw_url.startswith("postgresql://"):
+        parsed = urlsplit(raw_url)
+        filtered_params = [
+            (key, value)
+            for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+            if key.lower() not in {"pgbouncer"}
+        ]
+        rebuilt_query = urlencode(filtered_params, doseq=True)
+        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, rebuilt_query, parsed.fragment))
+
     return raw_url
 
 class Config:
