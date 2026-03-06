@@ -1,6 +1,8 @@
 import io
+import ipaddress
 import os
 import re
+import socket
 import tempfile
 from urllib.parse import parse_qs, urlparse
 
@@ -23,6 +25,12 @@ client = OpenAI(
 )
 
 MAX_SOURCE_CHARS = 120_000
+REQUEST_TIMEOUT_SECONDS = 25
+ALLOWED_URL_SCHEMES = {"http", "https"}
+ALLOWED_SOURCE_DOMAINS = {
+    "youtube.com",
+    "youtu.be",
+}
 DEFAULT_HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -42,24 +50,101 @@ def _truncate(text, limit=MAX_SOURCE_CHARS):
     return text[:limit] + "\n\n[Truncated for length]"
 
 
-def _fetch_text_url(url, timeout=25):
+def _is_hostname_allowed(hostname):
+    host = (hostname or "").lower().strip(".")
+    if not host:
+        return False
+    for allowed in ALLOWED_SOURCE_DOMAINS:
+        allowed = allowed.lower()
+        if host == allowed or host.endswith(f".{allowed}"):
+            return True
+    return False
+
+
+def _is_forbidden_ip(ip_obj):
+    return (
+        ip_obj.is_private
+        or ip_obj.is_loopback
+        or ip_obj.is_link_local
+        or ip_obj.is_multicast
+        or ip_obj.is_reserved
+        or ip_obj.is_unspecified
+    )
+
+
+def _ensure_hostname_not_private(hostname):
+    host = (hostname or "").lower().strip(".")
+    if not host:
+        raise ValueError("Invalid URL: missing hostname.")
+    if host in {"localhost", "localhost.localdomain"}:
+        raise ValueError("Invalid URL: localhost is not allowed.")
+
+    try:
+        ip_obj = ipaddress.ip_address(host)
+    except ValueError:
+        ip_obj = None
+
+    if ip_obj is not None:
+        if _is_forbidden_ip(ip_obj):
+            raise ValueError("Invalid URL: private or local IP addresses are not allowed.")
+        return
+
+    try:
+        resolved = socket.getaddrinfo(host, None)
+    except socket.gaierror as exc:
+        raise ValueError("Invalid URL: hostname could not be resolved.") from exc
+
+    seen_ips = set()
+    for item in resolved:
+        sockaddr = item[4]
+        if not sockaddr:
+            continue
+        ip_text = sockaddr[0]
+        if ip_text in seen_ips:
+            continue
+        seen_ips.add(ip_text)
+        ip_obj = ipaddress.ip_address(ip_text)
+        if _is_forbidden_ip(ip_obj):
+            raise ValueError("Invalid URL: resolved to a private or local IP address.")
+
+
+def _validate_and_normalize_source_url(raw_url):
+    url = (raw_url or "").strip()
+    if not url:
+        raise ValueError("Invalid URL: URL is empty.")
+
+    parsed = urlparse(url)
+    if not parsed.scheme:
+        url = f"https://{url}"
+        parsed = urlparse(url)
+
+    scheme = (parsed.scheme or "").lower()
+    if scheme not in ALLOWED_URL_SCHEMES:
+        raise ValueError("Invalid URL: only http and https schemes are allowed.")
+
+    if not parsed.netloc:
+        raise ValueError("Invalid URL: missing network location.")
+
+    host = (parsed.hostname or "").lower().strip(".")
+    if not _is_hostname_allowed(host):
+        raise ValueError("Invalid URL: domain is not in the trusted allowlist.")
+
+    _ensure_hostname_not_private(host)
+    return parsed.geturl()
+
+
+def _fetch_text_url(url, timeout=REQUEST_TIMEOUT_SECONDS):
     response = requests.get(url, timeout=timeout, headers=DEFAULT_HEADERS)
     response.raise_for_status()
     return response.text
 
 
 def _normalize_url_input(raw_url):
-    url = (raw_url or "").strip()
-    if not url:
-        return ""
-    parsed = urlparse(url)
-    if not parsed.scheme:
-        url = f"https://{url}"
-    return url
+    return _validate_and_normalize_source_url(raw_url)
 
 
 def _extract_website_text(url):
-    html = _fetch_text_url(url, timeout=25)
+    html = _fetch_text_url(url, timeout=REQUEST_TIMEOUT_SECONDS)
     soup = BeautifulSoup(html, "html.parser")
 
     for tag in soup(["script", "style", "noscript"]):
@@ -95,9 +180,9 @@ def _youtube_video_id(url):
     host = (parsed.hostname or "").lower()
     if host in {"youtu.be", "www.youtu.be"}:
         return parsed.path.strip("/")
-    if "youtube.com" in host and parsed.path.startswith("/shorts/"):
+    if host in {"youtube.com", "www.youtube.com", "m.youtube.com"} and parsed.path.startswith("/shorts/"):
         return parsed.path.split("/shorts/")[-1].split("/")[0]
-    if "youtube.com" in host:
+    if host in {"youtube.com", "www.youtube.com", "m.youtube.com"}:
         return parse_qs(parsed.query).get("v", [None])[0]
     return None
 
@@ -130,7 +215,7 @@ def _extract_google_doc_or_slide(url):
     file_id = match.group(1)
     if "docs.google.com/document/" in url:
         export_url = f"https://docs.google.com/document/d/{file_id}/export?format=txt"
-        response = requests.get(export_url, timeout=25, headers=DEFAULT_HEADERS)
+        response = requests.get(export_url, timeout=REQUEST_TIMEOUT_SECONDS, headers=DEFAULT_HEADERS)
         response.raise_for_status()
         return _truncate(_normalize_whitespace(response.text))
 
@@ -174,14 +259,16 @@ def _extract_uploaded_text(file_storage):
 
 
 def _extract_url_text(url):
-    lower_url = url.lower()
-    if "youtube.com" in lower_url or "youtu.be" in lower_url:
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    path = (parsed.path or "").lower()
+    if host in {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be", "www.youtu.be"}:
         return _extract_youtube_transcript(url)
-    if "docs.google.com/document/" in lower_url or "docs.google.com/presentation/" in lower_url:
+    if host == "docs.google.com" and ("/document/" in path or "/presentation/" in path):
         return _extract_google_doc_or_slide(url)
-    if lower_url.endswith(".pdf"):
+    if path.endswith(".pdf"):
         return _extract_pdf_text_from_url(url)
-    return _extract_website_text(url)
+    raise ValueError("Invalid URL: unsupported source type for the trusted domains.")
 
 
 def build_source_bundle(direct_text, source_urls, source_files):
@@ -195,16 +282,20 @@ def build_source_bundle(direct_text, source_urls, source_files):
         source_labels.append("Manual Input")
 
     for raw_url in source_urls:
-        url = _normalize_url_input(raw_url)
-        if not url:
+        if not (raw_url or "").strip():
             continue
         try:
+            url = _normalize_url_input(raw_url)
             extracted = _extract_url_text(url)
             if extracted:
                 sections.append(f"[Source URL: {url}]\n{extracted}")
                 source_labels.append(url)
+        except ValueError as exc:
+            errors.append(f"URL failed ({raw_url}): {exc}")
+        except requests.RequestException as exc:
+            errors.append(f"URL failed ({raw_url}): request error ({exc})")
         except Exception as exc:
-            errors.append(f"URL failed ({url}): {exc}")
+            errors.append(f"URL failed ({raw_url}): {exc}")
 
     for uploaded in source_files:
         if not uploaded or not uploaded.filename:

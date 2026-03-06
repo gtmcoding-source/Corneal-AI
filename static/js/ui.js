@@ -2,6 +2,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     if (!body) return;
 
+    const intro = document.getElementById("site-intro");
+    if (intro) {
+        body.classList.add("intro-lock");
+        const hideIntro = () => {
+            intro.classList.add("is-hidden");
+            body.classList.remove("intro-lock");
+            window.setTimeout(() => {
+                if (intro.parentNode) {
+                    intro.parentNode.removeChild(intro);
+                }
+            }, 700);
+        };
+        window.setTimeout(hideIntro, 1700);
+        intro.addEventListener("animationend", hideIntro, { once: true });
+    }
+
     const syncScrollState = () => {
         if (window.scrollY > 12) {
             body.classList.add("nav-scrolled");
