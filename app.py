@@ -44,31 +44,26 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
     inspector = inspect(db.engine)
-    table_names = set(inspector.get_table_names())
-    user_table = "users" if "users" in table_names else "user"
-    columns = {column["name"] for column in inspector.get_columns(user_table)}
+    columns = {column["name"] for column in inspector.get_columns("user")}
     with db.engine.begin() as connection:
-        if "username" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN username VARCHAR(100)"))
         if "email" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN email VARCHAR(120)"))
+            connection.execute(text("ALTER TABLE user ADD COLUMN email VARCHAR(120)"))
         if "mobile" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN mobile VARCHAR(20)"))
+            connection.execute(text("ALTER TABLE user ADD COLUMN mobile VARCHAR(20)"))
         if "auth0_sub" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN auth0_sub VARCHAR(255)"))
+            connection.execute(text("ALTER TABLE user ADD COLUMN auth0_sub VARCHAR(255)"))
         if "oauth_provider" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN oauth_provider VARCHAR(50)"))
+            connection.execute(text("ALTER TABLE user ADD COLUMN oauth_provider VARCHAR(50)"))
         if "oauth_sub" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN oauth_sub VARCHAR(255)"))
+            connection.execute(text("ALTER TABLE user ADD COLUMN oauth_sub VARCHAR(255)"))
         if "plan" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN plan VARCHAR(30) DEFAULT 'starter'"))
+            connection.execute(text("ALTER TABLE user ADD COLUMN plan VARCHAR(30) DEFAULT 'starter'"))
         if "last_payment_provider" not in columns:
-            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN last_payment_provider VARCHAR(30)"))
-        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_username_unique ON {user_table}(username)"))
-        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_email_unique ON {user_table}(email)"))
-        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_mobile_unique ON {user_table}(mobile)"))
-        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_auth0_sub_unique ON {user_table}(auth0_sub)"))
-        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_oauth_provider_sub_unique ON {user_table}(oauth_provider, oauth_sub)"))
+            connection.execute(text("ALTER TABLE user ADD COLUMN last_payment_provider VARCHAR(30)"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_email_unique ON user(email)"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_mobile_unique ON user(mobile)"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_auth0_sub_unique ON user(auth0_sub)"))
+        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_oauth_provider_sub_unique ON user(oauth_provider, oauth_sub)"))
 
 if Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID and Config.AUTH0_CLIENT_SECRET:
     oauth.register(

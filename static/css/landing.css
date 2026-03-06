@@ -12,19 +12,11 @@
     z-index: 9999;
     display: grid;
     place-items: center;
-<<<<<<< HEAD
     background:
         radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.16), transparent 34%),
         radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.2), transparent 44%),
         radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.34), transparent 42%),
         linear-gradient(180deg, #05091c 0%, #081132 48%, #05091c 100%);
-=======
-    background-color: rgb(13, 16, 30);
-    background-image:
-        radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.12), transparent 34%),
-        radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.16), transparent 44%),
-        radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.26), transparent 42%);
->>>>>>> 88400fee47ecd48965d045102cb848177e7ca0a9
     opacity: 1;
     visibility: visible;
     transition: opacity 520ms ease, visibility 520ms ease;
@@ -140,19 +132,11 @@ body[data-theme="dark"] .landing-shell::before {
 }
 
 body[data-theme="dark"] .site-intro {
-<<<<<<< HEAD
     background:
         radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.16), transparent 34%),
         radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.2), transparent 44%),
         radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.34), transparent 42%),
         linear-gradient(180deg, #05091c 0%, #081132 48%, #05091c 100%);
-=======
-    background-color: rgb(13, 16, 30);
-    background-image:
-        radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.12), transparent 34%),
-        radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.16), transparent 44%),
-        radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.26), transparent 42%);
->>>>>>> 88400fee47ecd48965d045102cb848177e7ca0a9
 }
 
 body[data-theme="dark"] .landing-shell::after {
@@ -200,8 +184,6 @@ body[data-theme="dark"] .trust-strip p {
         opacity: 1;
     }
 }
-<<<<<<< HEAD
-=======
 
 .reviews-meta {
     margin-top: 0.55rem;
@@ -277,4 +259,3 @@ body[data-theme="dark"] .review-form textarea {
         gap: 0;
     }
 }
->>>>>>> 88400fee47ecd48965d045102cb848177e7ca0a9
