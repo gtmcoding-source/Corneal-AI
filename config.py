@@ -31,7 +31,12 @@ def _int_env(name, default, minimum=None):
 
 
 def _database_url():
-    raw_url = (os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL") or "sqlite:///database.db").strip()
+    raw_url = (
+        os.getenv("SUPABASE_DB_URL_IPV4")
+        or os.getenv("SUPABASE_DB_URL")
+        or os.getenv("DATABASE_URL")
+        or "sqlite:///database.db"
+    ).strip()
     if raw_url.startswith("postgres://"):
         raw_url = "postgresql://" + raw_url[len("postgres://"):]
 
