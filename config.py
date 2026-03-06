@@ -69,6 +69,6 @@ class Config:
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "").strip()
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "true").strip().lower() == "true"
     MAIL_USE_SSL = os.getenv("MAIL_USE_SSL", "false").strip().lower() == "true"
-    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME).strip()
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME or "no-reply@localhost").strip()
     PASSWORD_RESET_OTP_MINUTES = _int_env("PASSWORD_RESET_OTP_MINUTES", 10, minimum=1)
     PASSWORD_RESET_MAX_ATTEMPTS = _int_env("PASSWORD_RESET_MAX_ATTEMPTS", 5, minimum=1)

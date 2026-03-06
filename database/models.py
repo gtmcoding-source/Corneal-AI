@@ -55,3 +55,13 @@ class PasswordResetOTP(db.Model):
     attempts = db.Column(db.Integer, nullable=False, default=0)
     used_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    role = db.Column(db.String(80), nullable=True)
+    rating = db.Column(db.Integer, nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_approved = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)

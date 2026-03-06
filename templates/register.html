@@ -12,7 +12,7 @@
     <main class="auth-wrap">
         <section class="auth-container panel">
             <p class="eyebrow">Create Account</p>
-            <h2>Register with Gmail, GitHub, or mobile phone</h2>
+            <h2>Register with Gmail, GitHub, email, or mobile phone</h2>
             {% if error %}
                 <p class="error-message">{{ error }}</p>
             {% endif %}
@@ -26,13 +26,13 @@
                     {% endif %}
                 </div>
             {% else %}
-                <p class="subtitle">Social signup is not configured yet. Register with email/mobile below.</p>
+                <p class="subtitle">Social signup is not configured yet. Register below (email or mobile required).</p>
             {% endif %}
             <form class="auth-form" action="{{ url_for('register') }}" method="POST">
                 <input type="hidden" name="plan" value="{{ selected_plan or 'starter' }}">
                 <input type="text" name="username" placeholder="Username" autocomplete="username" required>
-                <input type="email" name="email" placeholder="Email (optional)" autocomplete="email">
-                <input type="tel" name="mobile" placeholder="Mobile phone (10-15 digits, optional)" autocomplete="tel" inputmode="numeric">
+                <input type="email" name="email" placeholder="Email (required if no mobile)" autocomplete="email">
+                <input type="tel" name="mobile" placeholder="Mobile phone (10-15 digits, required if no email)" autocomplete="tel" inputmode="numeric">
                 <input type="password" name="password" placeholder="Password" autocomplete="new-password" required>
                 <button type="submit">Register and Continue</button>
             </form>
