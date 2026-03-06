@@ -7,13 +7,14 @@ import secrets
 from logging.handlers import RotatingFileHandler
 from urllib.parse import urlencode, quote_plus
 
-from flask import Flask, render_template, request, redirect, url_for, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, send_file, make_response
 from authlib.integrations.flask_client import OAuth
 from flask_mail import Mail, Message
 from sqlalchemy import inspect, or_, text, func
+from itsdangerous import URLSafeSerializer, BadSignature
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
-from database.models import db, User, Notes, Lead, LoginEvent, PasswordResetOTP
+from database.models import db, User, Notes, Lead, LoginEvent, PasswordResetOTP, Review
 from utils.ai_handler import generate_notes, transform_notes, TRANSFORM_ACTIONS, generate_study_plan
 from utils.helpers import generate_pdf, markdown_to_html
 from utils.source_ingestion import build_source_bundle
@@ -43,26 +44,31 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
     inspector = inspect(db.engine)
-    columns = {column["name"] for column in inspector.get_columns("user")}
+    table_names = set(inspector.get_table_names())
+    user_table = "users" if "users" in table_names else "user"
+    columns = {column["name"] for column in inspector.get_columns(user_table)}
     with db.engine.begin() as connection:
+        if "username" not in columns:
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN username VARCHAR(100)"))
         if "email" not in columns:
-            connection.execute(text("ALTER TABLE user ADD COLUMN email VARCHAR(120)"))
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN email VARCHAR(120)"))
         if "mobile" not in columns:
-            connection.execute(text("ALTER TABLE user ADD COLUMN mobile VARCHAR(20)"))
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN mobile VARCHAR(20)"))
         if "auth0_sub" not in columns:
-            connection.execute(text("ALTER TABLE user ADD COLUMN auth0_sub VARCHAR(255)"))
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN auth0_sub VARCHAR(255)"))
         if "oauth_provider" not in columns:
-            connection.execute(text("ALTER TABLE user ADD COLUMN oauth_provider VARCHAR(50)"))
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN oauth_provider VARCHAR(50)"))
         if "oauth_sub" not in columns:
-            connection.execute(text("ALTER TABLE user ADD COLUMN oauth_sub VARCHAR(255)"))
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN oauth_sub VARCHAR(255)"))
         if "plan" not in columns:
-            connection.execute(text("ALTER TABLE user ADD COLUMN plan VARCHAR(30) DEFAULT 'starter'"))
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN plan VARCHAR(30) DEFAULT 'starter'"))
         if "last_payment_provider" not in columns:
-            connection.execute(text("ALTER TABLE user ADD COLUMN last_payment_provider VARCHAR(30)"))
-        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_email_unique ON user(email)"))
-        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_mobile_unique ON user(mobile)"))
-        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_auth0_sub_unique ON user(auth0_sub)"))
-        connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_user_oauth_provider_sub_unique ON user(oauth_provider, oauth_sub)"))
+            connection.execute(text(f"ALTER TABLE {user_table} ADD COLUMN last_payment_provider VARCHAR(30)"))
+        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_username_unique ON {user_table}(username)"))
+        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_email_unique ON {user_table}(email)"))
+        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_mobile_unique ON {user_table}(mobile)"))
+        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_auth0_sub_unique ON {user_table}(auth0_sub)"))
+        connection.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS ix_user_oauth_provider_sub_unique ON {user_table}(oauth_provider, oauth_sub)"))
 
 if Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID and Config.AUTH0_CLIENT_SECRET:
     oauth.register(
@@ -175,6 +181,7 @@ COUPON_CONFIG = {
 }
 
 STARTER_DAILY_NOTE_LIMIT = 3
+REMEMBER_COOKIE_NAME = "remember_device_token"
 
 def normalize_mobile(value):
     return "".join(char for char in value if char.isdigit())
@@ -243,6 +250,65 @@ def _record_login_event(user, provider):
     )
 
 
+def _remember_cookie_max_age():
+    return max(86400, int(Config.PERMANENT_SESSION_LIFETIME.total_seconds()))
+
+
+def _remember_serializer():
+    return URLSafeSerializer(app.secret_key, salt="remember-device")
+
+
+def _build_remember_token(user):
+    return _remember_serializer().dumps(
+        {
+            "uid": user.id,
+            "pwd_tag": (user.password or "")[-24:],
+        }
+    )
+
+
+def _user_from_remember_token(token):
+    if not token:
+        return None
+    try:
+        payload = _remember_serializer().loads(token)
+    except BadSignature:
+        return None
+
+    user_id = payload.get("uid")
+    pwd_tag = payload.get("pwd_tag")
+    if not user_id or not isinstance(pwd_tag, str):
+        return None
+
+    user = User.query.get(user_id)
+    if not user:
+        return None
+    if (user.password or "")[-24:] != pwd_tag:
+        return None
+    return user
+
+
+def _set_remember_cookie(response, user, enabled):
+    if enabled and user:
+        response.set_cookie(
+            REMEMBER_COOKIE_NAME,
+            _build_remember_token(user),
+            max_age=_remember_cookie_max_age(),
+            httponly=True,
+            secure=Config.SESSION_COOKIE_SECURE,
+            samesite=Config.SESSION_COOKIE_SAMESITE,
+        )
+        return response
+
+    response.delete_cookie(
+        REMEMBER_COOKIE_NAME,
+        httponly=True,
+        secure=Config.SESSION_COOKIE_SECURE,
+        samesite=Config.SESSION_COOKIE_SAMESITE,
+    )
+    return response
+
+
 def _tail_admin_logs(path, max_lines):
     if not path or not os.path.exists(path):
         return []
@@ -308,13 +374,17 @@ def _active_reset_otp_for_user(user_id):
 
 
 def _send_password_reset_otp(email, otp_code):
-    if not (Config.MAIL_SERVER and Config.MAIL_PORT and Config.MAIL_DEFAULT_SENDER):
-        app.logger.warning("Password reset email not sent: mail config missing.")
+    if not Config.MAIL_SERVER:
+        app.logger.warning("Password reset email not sent: MAIL_SERVER is missing.")
         return False
+
+    sender = (Config.MAIL_DEFAULT_SENDER or Config.MAIL_USERNAME or "no-reply@localhost").strip()
+
     try:
         message = Message(
             subject="Your Corneal AI password reset OTP",
             recipients=[email],
+            sender=sender,
             body=(
                 f"Your OTP is {otp_code}. It expires in {Config.PASSWORD_RESET_OTP_MINUTES} minutes.\n\n"
                 "If you did not request this reset, ignore this email."
@@ -466,13 +536,99 @@ def apply_security_headers(response):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
 
+
+@app.before_request
+def restore_remembered_session():
+    if session.get("user_id"):
+        return
+
+    remembered_user = _user_from_remember_token(request.cookies.get(REMEMBER_COOKIE_NAME))
+    if not remembered_user:
+        return
+
+    session["user_id"] = remembered_user.id
+    session.permanent = True
+
 # ==============================
 # Routes
 # ==============================
 
 @app.route("/")
 def landing():
-    return render_template("landing.html")
+    review_message_map = {
+        "saved": "Thanks for your review.",
+        "blocked": "Request could not be processed.",
+        "invalid_name": "Name is required and must be 80 characters or fewer.",
+        "invalid_role": "Role must be 80 characters or fewer.",
+        "invalid_rating": "Rating must be between 1 and 5.",
+        "invalid_message": "Review message is required and must be 600 characters or fewer.",
+    }
+    review_error = review_message_map.get(request.args.get("review_error", "").strip(), "")
+    review_success = review_message_map.get(request.args.get("review", "").strip(), "")
+
+    reviews = (
+        Review.query.filter_by(is_approved=True)
+        .order_by(Review.created_at.desc())
+        .limit(6)
+        .all()
+    )
+    avg_rating = (
+        db.session.query(func.avg(Review.rating))
+        .filter(Review.is_approved.is_(True))
+        .scalar()
+    )
+    review_count = (
+        db.session.query(func.count(Review.id))
+        .filter(Review.is_approved.is_(True))
+        .scalar()
+    ) or 0
+    average_rating_display = f"{float(avg_rating):.1f}" if avg_rating else "0.0"
+
+    return render_template(
+        "landing.html",
+        reviews=reviews,
+        review_error=review_error,
+        review_success=review_success,
+        review_count=review_count,
+        average_rating_display=average_rating_display,
+    )
+
+
+@app.route("/reviews", methods=["POST"])
+def submit_review():
+    name = request.form.get("name", "").strip()
+    role = request.form.get("role", "").strip()
+    message = request.form.get("message", "").strip()
+    website = request.form.get("website", "").strip()
+
+    rating_raw = request.form.get("rating", "").strip()
+    try:
+        rating = int(rating_raw)
+    except ValueError:
+        rating = 0
+
+    if website:
+        return redirect(url_for("landing", review_error="blocked", _anchor="reviews"))
+    if not name or len(name) > 80:
+        return redirect(url_for("landing", review_error="invalid_name", _anchor="reviews"))
+    if len(role) > 80:
+        return redirect(url_for("landing", review_error="invalid_role", _anchor="reviews"))
+    if rating < 1 or rating > 5:
+        return redirect(url_for("landing", review_error="invalid_rating", _anchor="reviews"))
+    if not message or len(message) > 600:
+        return redirect(url_for("landing", review_error="invalid_message", _anchor="reviews"))
+
+    db.session.add(
+        Review(
+            name=name,
+            role=role or None,
+            rating=rating,
+            message=message,
+            is_approved=True,
+        )
+    )
+    db.session.commit()
+    return redirect(url_for("landing", review="saved", _anchor="reviews"))
 
 @app.route("/journey")
 def journey():
@@ -716,6 +872,10 @@ def register():
             return render_template("register.html", error="Password is required.", selected_plan=selected_plan), 400
         if not username:
             return render_template("register.html", error="Username is required.", selected_plan=selected_plan), 400
+        if not email and not mobile:
+            return render_template("register.html", error="Email or mobile is required.", selected_plan=selected_plan), 400
+        if email and not is_valid_email(email):
+            return render_template("register.html", error="Please provide a valid email address.", selected_plan=selected_plan), 400
         if not is_strong_password(password):
             return render_template(
                 "register.html",
@@ -749,11 +909,16 @@ def register():
         db.session.commit()
 
         session.clear()
+        session.permanent = False
         session["user_id"] = new_user.id
 
+        destination = url_for("home")
         if PLAN_CONFIG[selected_plan]["price_cents"] > 0:
-            return redirect(url_for("checkout", plan=selected_plan))
-        return redirect(url_for("home"))
+            destination = url_for("checkout", plan=selected_plan)
+
+        response = make_response(redirect(destination))
+        _set_remember_cookie(response, new_user, enabled=False)
+        return response
     return render_template("register.html", selected_plan=selected_plan)
 
 @app.route("/login", methods=["GET", "POST"])
@@ -775,7 +940,9 @@ def login():
             session.permanent = remember_me
             session["user_id"] = user.id
             _record_login_event(user, "local")
-            return redirect(safe_next or url_for("home"))
+            response = make_response(redirect(safe_next or url_for("home")))
+            _set_remember_cookie(response, user, enabled=remember_me)
+            return response
 
         return render_template("login.html", error="Invalid credentials.", next_url=safe_next, remember_me=remember_me), 401
     success = "Password reset successful. Please login with your new password." if request.args.get("reset") == "1" else None
@@ -820,7 +987,7 @@ def forgot_password():
 
                 sent = _send_password_reset_otp(user.email, otp_code)
                 if not sent:
-                    error = "Could not send OTP email. Check mail configuration and try again."
+                    error = "Could not send OTP email. Check MAIL_SERVER, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, and MAIL_DEFAULT_SENDER in .env."
                 else:
                     session["password_reset_user_id"] = user.id
                     session["password_reset_email_hint"] = _mask_email(user.email)
@@ -966,17 +1133,18 @@ def _login_oauth_user(provider_name, provider_sub, email=None, display_name=None
     session["oauth_provider"] = provider_name
     _record_login_event(user, provider_name)
 
+    destination = url_for("home")
     if oauth_intent == "register":
         user.plan = oauth_plan
         db.session.commit()
         if PLAN_CONFIG[oauth_plan]["price_cents"] > 0:
-            return redirect(url_for("checkout", plan=oauth_plan))
-        return redirect(url_for("home"))
+            destination = url_for("checkout", plan=oauth_plan)
+    elif oauth_next:
+        destination = oauth_next
 
-    if oauth_next:
-        return redirect(oauth_next)
-
-    return redirect(url_for("home"))
+    response = make_response(redirect(destination))
+    _set_remember_cookie(response, user, enabled=oauth_remember)
+    return response
 
 
 @app.route("/callback")
@@ -1075,13 +1243,17 @@ def github_callback():
 def logout():
     provider = (session.get("oauth_provider") or "").strip().lower()
     session.clear()
+    target_url = url_for("login")
     if provider == "auth0" and Config.AUTH0_DOMAIN and Config.AUTH0_CLIENT_ID:
         params = {
             "returnTo": url_for("landing", _external=True),
             "client_id": Config.AUTH0_CLIENT_ID,
         }
-        return redirect(f"https://{Config.AUTH0_DOMAIN}/v2/logout?{urlencode(params, quote_via=quote_plus)}")
-    return redirect(url_for("login"))
+        target_url = f"https://{Config.AUTH0_DOMAIN}/v2/logout?{urlencode(params, quote_via=quote_plus)}"
+
+    response = make_response(redirect(target_url))
+    _set_remember_cookie(response, user=None, enabled=False)
+    return response
 
 
 @app.route("/checkout", methods=["GET", "POST"])

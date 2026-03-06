@@ -12,11 +12,19 @@
     z-index: 9999;
     display: grid;
     place-items: center;
+<<<<<<< HEAD
     background:
         radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.16), transparent 34%),
         radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.2), transparent 44%),
         radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.34), transparent 42%),
         linear-gradient(180deg, #05091c 0%, #081132 48%, #05091c 100%);
+=======
+    background-color: rgb(13, 16, 30);
+    background-image:
+        radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.12), transparent 34%),
+        radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.16), transparent 44%),
+        radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.26), transparent 42%);
+>>>>>>> 88400fee47ecd48965d045102cb848177e7ca0a9
     opacity: 1;
     visibility: visible;
     transition: opacity 520ms ease, visibility 520ms ease;
@@ -132,11 +140,19 @@ body[data-theme="dark"] .landing-shell::before {
 }
 
 body[data-theme="dark"] .site-intro {
+<<<<<<< HEAD
     background:
         radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.16), transparent 34%),
         radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.2), transparent 44%),
         radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.34), transparent 42%),
         linear-gradient(180deg, #05091c 0%, #081132 48%, #05091c 100%);
+=======
+    background-color: rgb(13, 16, 30);
+    background-image:
+        radial-gradient(circle at 50% 18%, rgba(0, 217, 255, 0.12), transparent 34%),
+        radial-gradient(circle at 20% 80%, rgba(21, 84, 185, 0.16), transparent 44%),
+        radial-gradient(circle at 84% 26%, rgba(7, 33, 106, 0.26), transparent 42%);
+>>>>>>> 88400fee47ecd48965d045102cb848177e7ca0a9
 }
 
 body[data-theme="dark"] .landing-shell::after {
@@ -184,3 +200,81 @@ body[data-theme="dark"] .trust-strip p {
         opacity: 1;
     }
 }
+<<<<<<< HEAD
+=======
+
+.reviews-meta {
+    margin-top: 0.55rem;
+    margin-bottom: 1rem;
+    color: var(--text-soft);
+}
+
+.review-stars {
+    margin-bottom: 0.65rem;
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    color: #f59e0b;
+}
+
+.review-form {
+    margin-top: 1.25rem;
+    padding: 1.1rem;
+    border: 1px solid rgba(148, 163, 184, 0.26);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.62);
+}
+
+.review-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.review-form label {
+    display: block;
+    margin-top: 0.9rem;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+}
+
+.review-form input,
+.review-form select,
+.review-form textarea {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 12px;
+    padding: 0.7rem 0.8rem;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.review-form button {
+    margin-top: 0.95rem;
+    border: 0;
+    border-radius: 12px;
+    padding: 0.72rem 1rem;
+    background: linear-gradient(118deg, #2563eb 0%, #7c3aed 100%);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+body[data-theme="dark"] .review-form {
+    background: rgba(15, 23, 42, 0.58);
+    border-color: rgba(148, 163, 184, 0.3);
+}
+
+body[data-theme="dark"] .review-form input,
+body[data-theme="dark"] .review-form select,
+body[data-theme="dark"] .review-form textarea {
+    background: rgba(15, 23, 42, 0.82);
+    color: #e2e8f0;
+    border-color: rgba(148, 163, 184, 0.35);
+}
+
+@media (max-width: 640px) {
+    .review-form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+>>>>>>> 88400fee47ecd48965d045102cb848177e7ca0a9

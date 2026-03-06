@@ -171,22 +171,63 @@
             </div>
         </section>
 
-        <section class="panel landing-wide">
+        <section class="panel landing-wide" id="reviews">
             <h3>What users say</h3>
+            <p class="reviews-meta">{{ average_rating_display }}/5 average rating from {{ review_count }} reviews</p>
+            {% if review_success %}
+                <p class="success-message">{{ review_success }}</p>
+            {% endif %}
+            {% if review_error %}
+                <p class="error-message">{{ review_error }}</p>
+            {% endif %}
             <div class="testimonial-grid">
-                <blockquote class="quote-card">
-                    <p>"Our students now revise in one-third the time. The note structure is consistently clean."</p>
-                    <cite>Program Lead, Test Prep Center</cite>
-                </blockquote>
-                <blockquote class="quote-card">
-                    <p>"The mixed source mode helped us combine lecture PDFs and YouTube explainers into one revision file."</p>
-                    <cite>Engineering Student</cite>
-                </blockquote>
-                <blockquote class="quote-card">
-                    <p>"The registration and checkout flow feels ready for real deployment. No friction."</p>
-                    <cite>Academic Ops Manager</cite>
-                </blockquote>
+                {% if reviews %}
+                    {% for review in reviews %}
+                        <blockquote class="quote-card">
+                            <p class="review-stars" aria-label="{{ review.rating }} out of 5 stars">{% for _ in range(review.rating) %}★{% endfor %}{% for _ in range(5 - review.rating) %}☆{% endfor %}</p>
+                            <p>"{{ review.message }}"</p>
+                            <cite>{{ review.name }}{% if review.role %}, {{ review.role }}{% endif %}</cite>
+                        </blockquote>
+                    {% endfor %}
+                {% else %}
+                    <blockquote class="quote-card">
+                        <p>"Our students now revise in one-third the time. The note structure is consistently clean."</p>
+                        <cite>Program Lead, Test Prep Center</cite>
+                    </blockquote>
+                    <blockquote class="quote-card">
+                        <p>"The mixed source mode helped us combine lecture PDFs and YouTube explainers into one revision file."</p>
+                        <cite>Engineering Student</cite>
+                    </blockquote>
+                    <blockquote class="quote-card">
+                        <p>"The registration and checkout flow feels ready for real deployment. No friction."</p>
+                        <cite>Academic Ops Manager</cite>
+                    </blockquote>
+                {% endif %}
             </div>
+            <form class="review-form" action="{{ url_for('submit_review') }}" method="POST">
+                <input class="hp-field" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+                <div class="review-form-grid">
+                    <div>
+                        <label for="review-name">Name</label>
+                        <input id="review-name" type="text" name="name" maxlength="80" placeholder="Your name" required>
+                    </div>
+                    <div>
+                        <label for="review-role">Role (optional)</label>
+                        <input id="review-role" type="text" name="role" maxlength="80" placeholder="Student, Educator, etc.">
+                    </div>
+                </div>
+                <label for="review-rating">Rating</label>
+                <select id="review-rating" name="rating" required>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Poor</option>
+                </select>
+                <label for="review-message">Your review</label>
+                <textarea id="review-message" name="message" rows="4" maxlength="600" placeholder="Share your experience using AI Notes Maker." required></textarea>
+                <button type="submit">Submit Review</button>
+            </form>
         </section>
 
         <section class="panel final-cta">

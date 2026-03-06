@@ -4,6 +4,8 @@ from datetime import datetime
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True)
@@ -20,7 +22,7 @@ class User(db.Model):
 
 class Notes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     content = db.Column(db.Text, nullable=False)  # Original Input
     result = db.Column(db.Text, nullable=False)   # AI Generated Notes
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -39,7 +41,7 @@ class Lead(db.Model):
 
 class LoginEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     username = db.Column(db.String(100), nullable=False, index=True)
     provider = db.Column(db.String(30), nullable=False, default="local")
     ip_address = db.Column(db.String(64), nullable=True)
@@ -49,9 +51,19 @@ class LoginEvent(db.Model):
 
 class PasswordResetOTP(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
     otp_hash = db.Column(db.String(255), nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False, index=True)
     attempts = db.Column(db.Integer, nullable=False, default=0)
     used_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    role = db.Column(db.String(80), nullable=True)
+    rating = db.Column(db.Integer, nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_approved = db.Column(db.Boolean, nullable=False, default=True, index=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
